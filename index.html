@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SI-TIM TEKNIS KEMENSOS RI — Monitoring Tenaga Teknis &amp; Arsip Dokumen 2026</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            deepnavy: '#060d1f',
+            cardnavy: '#0b1630',
+            surfacenavy: '#132347',
+            gold: {
+              300: '#f5dc8c',
+              400: '#e6c153',
+              500: '#d4af37',
+              600: '#b5901d',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- jsPDF & jsPDF-AutoTable CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-plugin-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- SheetJS (xlsx) CDN -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #f1f5f9;
+      --bg-card: rgba(255, 255, 255, 0.96);
+      --bg-surface: #e8eef6;
+      --bg-surface-hover: #dce5f2;
+      --text-main: #0f172a;
+      --text-muted: #334155;
+      --text-soft: #64748b;
+      --border-gold: rgba(181, 144, 29, 0.35);
+      --border-subtle: rgba(15, 23, 42, 0.1);
+      --card-shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.12);
+    }
+
+    html.dark {
+      --bg-body: #060d1f;
+      --bg-card: rgba(11, 22, 48, 0.88);
+      --bg-surface: rgba(19, 35, 71, 0.82);
+      --bg-surface-hover: rgba(28, 50, 99, 0.94);
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --text-soft: #94a3b8;
+      --border-gold: rgba(212, 175, 55, 0.28);
+      --border-subtle: rgba(148, 163, 184, 0.16);
+      --card-shadow: 0 18px 42px -12px rgba(0, 0, 0, 0.78);
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      overflow-x: hidden;
+    }
+
+    html.dark body {
+      background-image:
+        radial-gradient(circle at 8% 4%, rgba(212, 175, 55, 0.1) 0%, transparent 36%),
+        radial-gradient(circle at 92% 10%, rgba(19, 35, 71, 0.85) 0%, transparent 46%),
+        radial-gradient(circle at 50% 96%, rgba(212, 175, 55, 0.06) 0%, transparent 40%);
+    }
+
+    html:not(.dark) body {
+      background-image:
+        radial-gradient(circle at 12% 4%, rgba(212, 175, 55, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 88% 10%, rgba(15, 23, 42, 0.04) 0%, transparent 45%);
+    }
+
+    .exec-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--border-gold);
+      box-shadow: var(--card-shadow);
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.25s ease;
+    }
+
+    .exec-card-hover:hover {
+      border-color: rgba(212, 175, 55, 0.65);
+      transform: translateY(-2px);
+    }
+
+    .exec-surface {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .exec-input {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .exec-input:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.22);
+    }
+
+    .gold-gradient-text {
+      background: linear-gradient(135deg, #f5dc8c 0%, #d4af37 52%, #f59e0b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    html:not(.dark) .gold-gradient-text {
+      background: linear-gradient(135deg, #0f172a 0%, #9a7414 55%, #b45309 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%);
+      color: #060d1f;
+      font-weight: 700;
+      box-shadow: 0 6px 18px -4px rgba(212, 175, 55, 0.45);
+      transition: all 0.2s ease;
+    }
+
+    .btn-gold:hover {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 22px -4px rgba(212, 175, 55, 0.65);
+    }
+
+    .font-mono-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(11, 22, 48, 0.25); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.35); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.65); }
+
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up { animation: fadeSlideUp 0.28s ease forwards; }
+
+    @keyframes rowHighlightPulse {
+      0% { background-color: rgba(16, 185, 129, 0.36); }
+      100% { background-color: transparent; }
+    }
+    .row-highlight-new { animation: rowHighlightPulse 3s ease-out forwards; }
+  </style>
+</head>
+<body class="min-h-screen antialiased selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- Hidden File Input for Excel (.xlsx) Import -->
+  <input type="file" id="excelImportInput" accept=".xlsx,.xls,.csv" class="hidden" />
+
+  <!-- ==================== INSTITUTIONAL EXECUTIVE HEADER ==================== -->
+  <header id="mainHeader" class="sticky top-0 z-40 border-b border-amber-500/25 backdrop-blur-xl bg-[#060d1f]/95 transition-colors">
+    <div class="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
+      <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3.5">
+        <!-- Emblem Perisai Emas Kemensos RI & Judul -->
+        <div class="flex items-center gap-3.5">
+          <div class="relative flex-shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0b1630] to-[#060d1f] border border-amber-400/60 flex items-center justify-center shadow-lg shadow-amber-500/15">
+            <svg class="w-7 h-7" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <defs>
+                <linearGradient id="kemensosShieldGold" x1="4" y1="3" x2="32" y2="33" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FDE68A" />
+                  <stop offset="50%" stop-color="#D4AF37" />
+                  <stop offset="100%" stop-color="#B45309" />
+                </linearGradient>
+              </defs>
+              <path d="M18 2.8L5 8.2V17.6C5 25.6 10.6 32.1 18 34C25.4 32.1 31 25.6 31 17.6V8.2L18 2.8Z" fill="url(#kemensosShieldGold)" fill-opacity="0.22" stroke="url(#kemensosShieldGold)" stroke-width="2.2" stroke-linejoin="round"/>
+              <path d="M18 9L20.2 13.8L25.4 14.5L21.6 18.1L22.5 23.2L18 20.7L13.5 23.2L14.4 18.1L10.6 14.5L15.8 13.8L18 9Z" fill="url(#kemensosShieldGold)"/>
+            </svg>
+            <span class="absolute -bottom-1 -right-1 px-1.5 py-0.2 text-[9px] font-mono-num font-bold tracking-wider rounded bg-amber-400 text-[#060d1f] shadow">2026</span>
+          </div>
+
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-lg lg:text-[20px] font-extrabold tracking-tight text-white">
+                SI-TIM TEKNIS KEMENSOS RI <span class="text-amber-400">— Monitoring Tenaga Teknis &amp; Arsip Dokumen 2026</span>
+              </h1>
+              <button onclick="openGasConfigModal()" id="backendStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/40 cursor-pointer hover:brightness-110 transition" title="Klik untuk mengatur URL Google Apps Script">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span>Atur URL Google Sheets</span>
+              </button>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-300 mt-0.5">
+              Biro Organisasi dan Sumber Daya Manusia &bull; Sekretariat Jenderal &bull; Kementerian Sosial RI
+            </p>
+          </div>
+        </div>
+
+        <!-- Global Action Toolbar -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="openGasConfigModal()" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#0b1630] hover:bg-[#132347] text-amber-300 border border-amber-400/40 transition cursor-pointer">
+            <i data-lucide="database" class="w-4 h-4"></i>
+            <span>Koneksi Sheets</span>
+          </button>
+
+          <button onclick="syncFromGoogleSheets(true)" id="syncNowBtn" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/35 transition cursor-pointer">
+            <i data-lucide="refresh-cw" id="syncSpinnerIcon" class="w-4 h-4"></i>
+            <span>Sinkronkan</span>
+          </button>
+
+          <button onclick="openPrintExcelPdfPreview()" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Cetak Daftar PDF</span>
+          </button>
+
+          <button onclick="exportToExcel()" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-400/35 transition cursor-pointer">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Export .xlsx</span>
+          </button>
+
+          <button onclick="document.getElementById('excelImportInput').click()" class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-[#0b1630] hover:bg-[#132347] text-slate-200 border border-slate-600/50 transition cursor-pointer">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-400"></i>
+            <span>Import .xlsx</span>
+          </button>
+
+          <button onclick="toggleTheme()" id="themeToggleBtn" title="Ganti Tema Dark / Presentation Light Mode" class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-600/50 transition cursor-pointer">
+            <i data-lucide="sun" id="themeIconSun" class="w-4 h-4 text-amber-400"></i>
+            <i data-lucide="moon" id="themeIconMoon" class="w-4 h-4 text-indigo-300 hidden"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Workspace Navigation Tabs -->
+      <div class="mt-3.5 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <nav class="flex flex-wrap items-center gap-1.5 bg-[#0b1630] p-1 rounded-xl border border-amber-500/25">
+          <button id="tabBtnMaster" onclick="switchWorkspaceTab('master')" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer bg-gradient-to-r from-amber-400 to-amber-500 text-[#060d1f] shadow">
+            <i data-lucide="table-2" class="w-4 h-4"></i>
+            <span>Tab 1: Daftar Personil (<span id="tabMasterCount">59</span> Tenaga Teknis)</span>
+          </button>
+          <button id="tabBtnGallery" onclick="switchWorkspaceTab('gallery')" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer text-slate-300 hover:text-white">
+            <i data-lucide="folder-check" class="w-4 h-4"></i>
+            <span>Tab 2: Galeri Arsip Dokumen Terunggah</span>
+            <span id="headerGalleryBadge" class="px-2 py-0.5 text-[11px] font-mono-num font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/35">0 Berkas</span>
+          </button>
+        </nav>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300">
+          <a id="openSheetQuickLink" href="#" target="_blank" rel="noopener" class="hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 hover:underline">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            <span>Buka Google Sheets</span>
+          </a>
+          <a id="openDriveQuickLink" href="#" target="_blank" rel="noopener" class="hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-300 border border-sky-400/30 hover:underline">
+            <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+            <span>Folder Arsip Drive</span>
+          </a>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#0b1630]/90 border border-slate-700/60">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>Sudah Ada Dokumen: <strong id="headerHasDocCount" class="text-emerald-400 font-mono-num">0</strong></span>
+            <span class="mx-1 text-slate-600">|</span>
+            <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+            <span>Belum Ada: <strong id="headerNoDocCount" class="text-rose-400 font-mono-num">59</strong></span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN DASHBOARD CONTENT ==================== -->
+  <main class="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
+
+    <!-- ==================== 4 KARTU KPI UTAMA ==================== -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="exec-card exec-card-hover rounded-2xl p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Total Personil</p>
+            <h2 id="kpiTotalPersonil" class="text-3xl font-extrabold font-mono-num mt-1.5 gold-gradient-text">59</h2>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-2 text-xs">
+          <span class="text-emerald-600 dark:text-emerald-400 font-bold">
+            <span id="kpiHasDocPersons">0</span> Sudah Ada Dokumen
+          </span>
+          <span class="text-rose-600 dark:text-rose-400 font-bold">
+            <span id="kpiNoDocPersons">59</span> Belum Ada
+          </span>
+        </div>
+      </div>
+
+      <div class="exec-card exec-card-hover rounded-2xl p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Total Honorarium / Bulan</p>
+            <h2 id="kpiMonthlyHonor" class="text-2xl sm:text-[24px] font-extrabold font-mono-num mt-1.5 text-emerald-600 dark:text-emerald-400">Rp 514.000.000</h2>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 flex-shrink-0">
+            <i data-lucide="wallet" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs">
+          <span class="text-[var(--text-soft)]">Proyeksi Tahunan (12 Bln):</span>
+          <span id="kpiAnnualHonor" class="font-bold font-mono-num text-amber-600 dark:text-amber-300">Rp 6.168.000.000</span>
+        </div>
+      </div>
+
+      <div class="exec-card exec-card-hover rounded-2xl p-5">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Rata-Rata Honor / Bulan</p>
+            <h2 id="kpiAvgHonor" class="text-2xl sm:text-[24px] font-extrabold font-mono-num mt-1.5 text-[var(--text-main)]">Rp 8.711.864</h2>
+          </div>
+          <div class="w-11 h-11 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-500 dark:text-sky-400 flex-shrink-0">
+            <i data-lucide="calculator" class="w-5 h-5"></i>
+          </div>
+        </div>
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs">
+          <span class="text-[var(--text-soft)]">Rentang Honorarium:</span>
+          <span id="kpiHonorRange" class="font-bold font-mono-num text-[var(--text-muted)]">Rp 5,8 Jt &ndash; Rp 19 Jt</span>
+        </div>
+      </div>
+
+      <div class="exec-card exec-card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Kesiapan Dokumen 2026</p>
+          <span id="kpiTotalDocsBadge" class="px-2 py-0.5 rounded text-[10px] font-mono-num font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-400/35">
+            0 Berkas
+          </span>
+        </div>
+
+        <div class="space-y-2.5 text-xs">
+          <div>
+            <div class="flex justify-between font-bold mb-1">
+              <span class="text-emerald-600 dark:text-emerald-400">SK Keputusan</span>
+              <span id="kpiSkHeadline" class="font-mono-num text-[var(--text-main)]">0/59 &mdash; 0,0%</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-300/35 dark:bg-slate-800 overflow-hidden">
+              <div id="kpiSkProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between font-bold mb-1">
+              <span class="text-sky-600 dark:text-sky-400">SPK Kontrak</span>
+              <span id="kpiKontrakHeadline" class="font-mono-num text-[var(--text-main)]">0/59 &mdash; 0,0%</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-300/35 dark:bg-slate-800 overflow-hidden">
+              <div id="kpiKontrakProgressBar" class="h-full rounded-full bg-gradient-to-r from-sky-500 to-amber-400 transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 2 KARTU KOMPARASI INFOGRAFIS UKE I INTERAKTIF ==================== -->
+    <section class="space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-[var(--text-main)]">
+              Infografis Monitoring Tenaga Teknis &amp; Kesiapan Dokumen per UKE I
+            </h3>
+            <p class="text-xs text-[var(--text-soft)]">
+              Klik kartu Unit Kerja Eselon I untuk memfilter Tabel Personil dan Galeri Arsip Dokumen secara bersamaan
+            </p>
+          </div>
+        </div>
+
+        <button id="showAllUkeBtn" onclick="clearUkeCardSelection()" class="hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400 text-[#060d1f] shadow hover:brightness-105 transition cursor-pointer self-start sm:self-auto">
+          <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+          <span>Tampilkan Semua UKE I</span>
+        </button>
+      </div>
+
+      <div id="ukeInfographicCards" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- ==================== 3 GRAFIK CHART.JS RESPONSIF ==================== -->
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div class="exec-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="text-sm sm:text-base font-extrabold text-[var(--text-main)]">Sebaran Personil &amp; Honor per UKE I</h4>
+            <p class="text-xs text-[var(--text-soft)]">Komparasi Jumlah Personil &amp; Pagu Bulanan (Juta Rp)</p>
+          </div>
+          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-400/30">UKE I</span>
+        </div>
+        <div class="relative flex-1 min-h-[255px] w-full">
+          <canvas id="chartUkeHonor"></canvas>
+        </div>
+      </div>
+
+      <div class="exec-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="text-sm sm:text-base font-extrabold text-[var(--text-main)]">Distribusi &amp; Upload per Unit Penempatan</h4>
+            <p class="text-xs text-[var(--text-soft)]">Status SK &amp; Kontrak pada Satuan Kerja</p>
+          </div>
+          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-400/30">Satker</span>
+        </div>
+        <div class="relative flex-1 min-h-[255px] w-full">
+          <canvas id="chartUnitStatus"></canvas>
+        </div>
+      </div>
+
+      <div class="exec-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h4 class="text-sm sm:text-base font-extrabold text-[var(--text-main)]">Komposisi Kualifikasi Pendidikan</h4>
+            <p class="text-xs text-[var(--text-soft)]">S1, S2, SMK/SMA, D-IV, D-III, Belum Tercatat</p>
+          </div>
+          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/30">Jenjang</span>
+        </div>
+        <div class="relative flex-1 min-h-[255px] w-full">
+          <canvas id="chartEducationDoughnut"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 1: DAFTAR PERSONIL ==================== -->
+    <section id="workspaceTabMaster" class="exec-card rounded-2xl overflow-hidden animate-fade-up">
+      <div class="p-5 border-b border-[var(--border-subtle)] space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <h3 class="text-base sm:text-lg font-extrabold text-[var(--text-main)] flex items-center gap-2">
+              <i data-lucide="clipboard-list" class="w-5 h-5 text-amber-400"></i>
+              <span>Tabel Monitoring &amp; Data Master Tenaga Teknis</span>
+            </h3>
+            <p id="masterTableCounter" class="text-xs text-[var(--text-soft)] mt-0.5">
+              Menampilkan 59 dari 59 personil &bull; Unggah berkas SK / Kontrak langsung tersimpan ke Google Drive &amp; Spreadsheet
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openPrintExcelPdfPreview()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-400/35 transition cursor-pointer">
+              <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+              <span>Cetak PDF Tabel Ini</span>
+            </button>
+            <button onclick="resetTableFilters()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold exec-surface hover:border-amber-400/40 text-[var(--text-muted)] transition cursor-pointer">
+              <i data-lucide="filter-x" class="w-3.5 h-3.5"></i>
+              <span>Reset Filter</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+          <div class="lg:col-span-4 relative">
+            <i data-lucide="search" class="w-4 h-4 text-[var(--text-soft)] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input
+              type="text"
+              id="searchInput"
+              oninput="applyFilters()"
+              placeholder="Cari nama, profesi, pendidikan, atau no. SK/Kontrak..."
+              class="exec-input w-full pl-10 pr-8 py-2.5 rounded-xl text-xs sm:text-sm"
+            />
+            <button id="clearSearchBtn" onclick="clearSearchInput()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-soft)] hover:text-amber-400 cursor-pointer">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <div class="lg:col-span-3">
+            <select id="filterUkeSelect" onchange="onUkeDropdownChange()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
+              <option value="">Semua UKE I (2)</option>
+              <option value="Sekretariat Jenderal">Sekretariat Jenderal</option>
+              <option value="Direktorat Jenderal Perlindungan dan Jaminan Sosial">Ditjen Perlindungan &amp; Jaminan Sosial</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-3">
+            <select id="filterPenempatanSelect" onchange="applyFilters()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
+              <option value="">Semua Unit Penempatan</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-2">
+            <select id="filterStatusSelect" onchange="applyFilters()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
+              <option value="all">Semua Status</option>
+              <option value="has_doc">Sudah Ada Dokumen</option>
+              <option value="complete">Lengkap (SK &amp; Kontrak)</option>
+              <option value="partial">Parsial (SK / Kontrak Saja)</option>
+              <option value="no_doc">Belum Ada Dokumen</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="border-b border-[var(--border-subtle)] bg-slate-900/5 dark:bg-[#060d1f]/85 text-[11px] font-bold uppercase tracking-wider text-[var(--text-soft)]">
+              <th class="py-3.5 px-3.5 w-12 text-center">No</th>
+              <th class="py-3.5 px-3.5 min-w-[195px]">Nama &amp; Pendidikan</th>
+              <th class="py-3.5 px-3.5 min-w-[215px]">UKE I &amp; Penempatan</th>
+              <th class="py-3.5 px-3.5 min-w-[210px]">Profesi Keahlian &amp; Mitra</th>
+              <th class="py-3.5 px-3.5 min-w-[130px] text-right">Honor (Rp)</th>
+              <th class="py-3.5 px-3.5 min-w-[180px] text-center">Keterangan Status</th>
+              <th class="py-3.5 px-3.5 min-w-[235px] text-center">Dokumen &amp; Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="masterTableBody" class="divide-y divide-[var(--border-subtle)] text-xs sm:text-sm"></tbody>
+        </table>
+      </div>
+
+      <div id="masterTableEmpty" class="hidden py-14 px-6 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 mx-auto mb-3">
+          <i data-lucide="search-x" class="w-7 h-7"></i>
+        </div>
+        <h4 class="text-base font-bold text-[var(--text-main)]">Tidak Ada Data yang Cocok</h4>
+        <p class="text-xs sm:text-sm text-[var(--text-soft)] mt-1">Silakan ubah kata kunci pencarian atau reset filter status dokumen.</p>
+        <button onclick="resetTableFilters()" class="mt-4 btn-gold px-4 py-2 rounded-xl text-xs cursor-pointer">
+          Tampilkan Semua Personil
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: GALERI ARSIP DOKUMEN TERUNGGAH ==================== -->
+    <section id="workspaceTabGallery" class="hidden space-y-4 animate-fade-up">
+      <div class="exec-card rounded-2xl p-5 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-400/35 flex items-center justify-center text-amber-400 flex-shrink-0 mt-0.5">
+              <i data-lucide="archive" class="w-5 h-5"></i>
+            </div>
+            <div>
+              <h3 class="text-base sm:text-lg font-extrabold text-[var(--text-main)]">
+                Galeri Arsip Dokumen Terunggah (SK Keputusan &amp; SPK Kontrak 2026)
+              </h3>
+              <p class="text-xs text-[var(--text-soft)] mt-0.5">
+                Pratinjau 1-klik seluruh dokumen yang tersimpan di Google Drive per UKE I &amp; Unit Penempatan (Satker)
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
+            <span id="galleryFilteredCounter" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold font-mono-num bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/35">
+              <i data-lucide="files" class="w-3.5 h-3.5"></i>
+              <span>Menampilkan 0 dari 0 berkas</span>
+            </span>
+
+            <button onclick="resetGalleryFilters()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold exec-surface hover:border-amber-400/50 text-[var(--text-main)] transition cursor-pointer">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-amber-400"></i>
+              <span>Reset Filter Galeri</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 pt-3 border-t border-[var(--border-subtle)]">
+          <div class="lg:col-span-3">
+            <label for="galleryUkeFilter" class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-soft)] mb-1">
+              1. Unit Kerja Eselon I (UKE I)
+            </label>
+            <select id="galleryUkeFilter" onchange="onGalleryUkeChange()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+              <option value="">Semua UKE I</option>
+              <option value="Sekretariat Jenderal">Sekretariat Jenderal</option>
+              <option value="Direktorat Jenderal Perlindungan dan Jaminan Sosial">Direktorat Jenderal Perlindungan dan Jaminan Sosial</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-4">
+            <label for="galleryPenempatanFilter" class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-soft)] mb-1">
+              2. Penempatan (Unit Kerja / Satker)
+            </label>
+            <select id="galleryPenempatanFilter" onchange="renderGalleryView()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+              <option value="">Semua Penempatan (Satker)</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-2">
+            <label for="galleryTypeFilter" class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-soft)] mb-1">
+              3. Jenis Dokumen
+            </label>
+            <select id="galleryTypeFilter" onchange="renderGalleryView()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-medium cursor-pointer">
+              <option value="all">Semua Jenis (SK &amp; Kontrak)</option>
+              <option value="sk">Hanya SK Keputusan</option>
+              <option value="kontrak">Hanya SPK Kontrak</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-3">
+            <label for="gallerySearchInput" class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-soft)] mb-1">
+              4. Pencarian Cepat
+            </label>
+            <div class="relative">
+              <i data-lucide="search" class="w-4 h-4 text-[var(--text-soft)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+              <input
+                type="text"
+                id="gallerySearchInput"
+                oninput="renderGalleryView()"
+                placeholder="Cari nama / nomor berkas / penempatan..."
+                class="exec-input w-full pl-9 pr-8 py-2.5 rounded-xl text-xs sm:text-sm"
+              />
+              <button id="clearGallerySearchBtn" onclick="clearGallerySearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-soft)] hover:text-amber-400 cursor-pointer">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="galleryGridContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+      <div id="galleryEmptyState" class="hidden exec-card rounded-2xl py-16 px-6 text-center">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/15 border border-amber-400/35 flex items-center justify-center text-amber-400 mx-auto mb-3">
+          <i data-lucide="folder-open" class="w-8 h-8"></i>
+        </div>
+        <h4 class="text-base sm:text-lg font-extrabold text-[var(--text-main)]">Belum Ada Berkas pada Filter Ini</h4>
+        <p class="text-xs sm:text-sm text-[var(--text-soft)] max-w-md mx-auto mt-1">
+          Unggah dokumen SK Keputusan atau SPK Kontrak melalui Tab 1 (Daftar Personil) atau reset filter galeri.
+        </p>
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <button onclick="resetGalleryFilters()" class="exec-surface hover:border-amber-400/50 px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--text-main)] cursor-pointer">
+            Reset Filter Galeri
+          </button>
+          <button onclick="switchWorkspaceTab('master')" class="btn-gold inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs cursor-pointer">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+            <span>Ke Daftar Personil untuk Upload</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-8 border-t border-[var(--border-subtle)] text-xs text-[var(--text-soft)] flex flex-col sm:flex-row items-center justify-between gap-2">
+    <p>&copy; 2026 <strong class="text-[var(--text-main)]">SI-TIM TEKNIS KEMENSOS RI</strong> &mdash; Biro Organisasi dan Sumber Daya Manusia (Biro OSDM), Sekretariat Jenderal Kementerian Sosial RI.</p>
+    <p>Backend: Google Sheets &amp; Google Drive &bull; Frontend: GitHub Pages.</p>
+  </footer>
+
+  <!-- ==================== MODAL 1: KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL ==================== -->
+  <div id="gasConfigModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="exec-card w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border border-amber-400/45 animate-fade-up">
+      <div class="px-6 py-4 border-b border-[var(--border-subtle)] bg-[#060d1f] text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/45 flex items-center justify-center text-amber-400">
+            <i data-lucide="database" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold">Koneksi Backend Google Sheets &amp; Drive</h3>
+            <p class="text-xs text-slate-300">Hubungkan GitHub HTML dengan Web App Google Apps Script</p>
+          </div>
+        </div>
+        <button onclick="closeModal('gasConfigModal')" class="p-2 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <div class="exec-surface rounded-xl p-3.5 text-xs text-[var(--text-muted)] space-y-1.5 leading-relaxed">
+          <p class="font-bold text-[var(--text-main)]">Panduan Singkat Deployment Apps Script:</p>
+          <p>1. Jalankan fungsi <code class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 dark:text-amber-300 font-mono-num">setupDatabase()</code> sekali di editor Apps Script untuk membuat Sheet &amp; Folder Google Drive.</p>
+          <p>2. Klik <strong>Deploy &gt; New deployment &gt; Web app</strong> (Execute as: <strong>Me</strong>, Who has access: <strong>Anyone</strong>).</p>
+          <p>3. Salin <strong>Web App URL</strong> (<code class="font-mono-num">https://script.google.com/macros/s/.../exec</code>) dan tempel di bawah ini.</p>
+        </div>
+
+        <div>
+          <label for="gasUrlInput" class="block text-xs font-bold text-[var(--text-main)] mb-1.5">
+            URL Web App Google Apps Script (.exec)
+          </label>
+          <input
+            type="url"
+            id="gasUrlInput"
+            placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+            class="exec-input font-mono-num w-full px-3.5 py-2.5 rounded-xl text-xs"
+          />
+        </div>
+
+        <div id="gasTestResultBox" class="hidden rounded-xl p-3 text-xs font-semibold"></div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+        <button type="button" onclick="disconnectGasUrl()" class="px-3 py-2 rounded-xl text-xs font-bold bg-rose-500/15 text-rose-500 dark:text-rose-300 border border-rose-400/35 cursor-pointer">
+          Putuskan URL
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeModal('gasConfigModal')" class="px-4 py-2 rounded-xl text-xs font-semibold exec-surface text-[var(--text-muted)] cursor-pointer">
+            Tutup
+          </button>
+          <button type="button" onclick="saveAndTestGasUrl()" id="saveGasUrlBtn" class="btn-gold inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs sm:text-sm cursor-pointer">
+            <i data-lucide="plug-zap" class="w-4 h-4"></i>
+            <span>Simpan &amp; Uji Koneksi</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: LIVE DOCUMENT VIEWER ==================== -->
+  <div id="pdfViewerModal" class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
+    <div class="exec-card w-full max-w-6xl h-[93vh] rounded-2xl overflow-hidden shadow-2xl border border-amber-400/45 flex flex-col animate-fade-up">
+      <div class="px-4 sm:px-6 py-3.5 border-b border-[var(--border-subtle)] bg-[#060d1f] text-white flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <span id="viewerBadge" class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-amber-400 text-[#060d1f] flex-shrink-0">
+            DOKUMEN SK
+          </span>
+          <div class="min-w-0">
+            <h3 id="viewerTitle" class="text-sm sm:text-base font-extrabold truncate">Pratinjau Dokumen Resmi</h3>
+            <p id="viewerSubtitle" class="text-[11px] sm:text-xs font-mono-num text-slate-300 truncate mt-0.5">
+              Nomor Dokumen &bull; Keterangan
+            </p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div id="imageZoomControls" class="hidden items-center gap-1 bg-[#0b1630] px-2 py-1 rounded-xl border border-slate-700">
+            <button onclick="adjustImageZoom(-0.2)" class="px-2 py-1 rounded text-xs font-bold text-slate-200 hover:bg-slate-800 cursor-pointer">-</button>
+            <span id="imageZoomLabel" class="text-[11px] font-mono-num text-amber-300 px-1">100%</span>
+            <button onclick="adjustImageZoom(0.2)" class="px-2 py-1 rounded text-xs font-bold text-slate-200 hover:bg-slate-800 cursor-pointer">+</button>
+          </div>
+
+          <div id="viewerDocSwitcher" class="hidden items-center gap-1 bg-[#0b1630] p-1 rounded-xl border border-amber-400/30">
+            <button id="switchToSkBtn" onclick="switchViewedDocType('sk')" class="px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">SK</button>
+            <button id="switchToKontrakBtn" onclick="switchViewedDocType('kontrak')" class="px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">Kontrak</button>
+          </div>
+
+          <a id="viewerOpenNewTabBtn" href="#" target="_blank" rel="noopener" class="hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/25 hover:bg-emerald-500/35 text-emerald-300 border border-emerald-400/40 transition">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+            <span>Buka di Drive</span>
+          </a>
+
+          <button onclick="printCurrentPdf()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-sky-500/25 hover:bg-sky-500/35 text-sky-300 border border-sky-400/40 transition cursor-pointer">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            <span>Cetak</span>
+          </button>
+
+          <button onclick="downloadCurrentPdf()" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs cursor-pointer">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Unduh</span>
+          </button>
+
+          <button onclick="closePdfViewerModal()" class="p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 text-rose-300 border border-rose-400/35 transition cursor-pointer" title="Tutup">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="viewerContextStrip" class="px-4 sm:px-6 py-2 border-b border-[var(--border-subtle)] bg-[#0b1630]/90 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-slate-200">
+        <div><span class="text-slate-400">UKE I:</span> <strong id="viewerCtxUke">-</strong></div>
+        <div><span class="text-slate-400">Penempatan:</span> <strong id="viewerCtxUnit">-</strong></div>
+        <div><span class="text-slate-400">Honor/Bln:</span> <strong id="viewerCtxHonor" class="font-mono-num text-emerald-400">-</strong></div>
+      </div>
+
+      <div class="flex-1 bg-slate-950 relative overflow-auto flex items-center justify-center p-2 sm:p-4">
+        <iframe id="pdfIframeViewer" class="hidden w-full h-full rounded-xl bg-white border border-slate-700 shadow-2xl" title="Pratinjau Dokumen"></iframe>
+        <div id="imageViewerContainer" class="hidden w-full h-full overflow-auto flex items-center justify-center">
+          <img id="uploadedImagePreview" src="" alt="Pratinjau Berkas Unggahan" class="max-w-full max-h-full object-contain rounded-xl shadow-2xl transition-transform duration-200" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: UPLOAD / KELOLA DOKUMEN SK & KONTRAK ==================== -->
+  <div id="manageDocModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+    <div class="exec-card w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl border border-amber-400/45 my-auto animate-fade-up">
+      <div class="px-6 py-4 border-b border-[var(--border-subtle)] bg-[#060d1f] text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/45 flex items-center justify-center text-amber-400">
+            <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 id="manageModalName" class="text-base font-extrabold">Upload / Kelola Dokumen Pegawai</h3>
+            <p id="manageModalMeta" class="text-xs text-slate-300">Unit Penempatan &bull; UKE I</p>
+          </div>
+        </div>
+        <button onclick="closeManageDocModal()" class="p-2 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        <!-- Slot 1: Dokumen SK -->
+        <div class="exec-surface rounded-2xl p-4 space-y-3 border border-emerald-400/25">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-400/35">1. DOKUMEN SK KEPUTUSAN</span>
+              <span id="modalSkBadge" class="text-xs font-bold text-[var(--text-soft)]">Belum Upload</span>
+            </div>
+            <div id="modalSkQuickActions" class="flex items-center gap-1.5"></div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Nomor SK Keputusan</label>
+              <input type="text" id="inputSkNumber" placeholder="KEP-001/OSDM/TT/2026" class="exec-input font-mono-num w-full px-3 py-2 rounded-xl text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Unggah File SK (PDF / JPG / PNG / WEBP)</label>
+              <input type="file" id="inputSkFile" accept=".pdf,image/jpeg,image/png,image/webp" class="exec-input w-full px-2.5 py-1.5 rounded-xl text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-400 file:text-[#060d1f] cursor-pointer" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Atau Tautan URL Google Drive SK (Opsional)</label>
+            <input type="url" id="inputSkUrl" placeholder="https://drive.google.com/file/d/..." class="exec-input w-full px-3 py-2 rounded-xl text-xs" />
+          </div>
+        </div>
+
+        <!-- Slot 2: Dokumen Kontrak -->
+        <div class="exec-surface rounded-2xl p-4 space-y-3 border border-sky-400/25">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-extrabold bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-400/35">2. DOKUMEN SPK KONTRAK</span>
+              <span id="modalKontrakBadge" class="text-xs font-bold text-[var(--text-soft)]">Belum Upload</span>
+            </div>
+            <div id="modalKontrakQuickActions" class="flex items-center gap-1.5"></div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Nomor Kontrak (SPK)</label>
+              <input type="text" id="inputKontrakNumber" placeholder="SPK-001/OSDM/TT/2026" class="exec-input font-mono-num w-full px-3 py-2 rounded-xl text-xs" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Unggah File Kontrak (PDF / JPG / PNG / WEBP)</label>
+              <input type="file" id="inputKontrakFile" accept=".pdf,image/jpeg,image/png,image/webp" class="exec-input w-full px-2.5 py-1.5 rounded-xl text-xs file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-400 file:text-[#060d1f] cursor-pointer" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-[var(--text-muted)] mb-1">Atau Tautan URL Google Drive Kontrak (Opsional)</label>
+            <input type="url" id="inputKontrakUrl" placeholder="https://drive.google.com/file/d/..." class="exec-input w-full px-3 py-2 rounded-xl text-xs" />
+          </div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+        <button type="button" onclick="clearEmployeeDocsFromModal()" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-500/15 hover:bg-rose-500/25 text-rose-500 dark:text-rose-300 border border-rose-400/35 cursor-pointer">
+          Kosongkan Berkas
+        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeManageDocModal()" class="px-4 py-2 rounded-xl text-xs font-semibold exec-surface text-[var(--text-muted)] cursor-pointer">
+            Batal
+          </button>
+          <button type="button" onclick="saveManagedDocuments()" id="saveManagedDocBtn" class="btn-gold inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-xs sm:text-sm cursor-pointer">
+            <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+            <span>Simpan ke Google Drive &amp; Sheets</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2.5 max-w-md w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- ==================== APPLICATION SCRIPT ==================== -->
+  <script>
+    // =========================================================================
+    // 1. KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL
+    // Anda dapat menempelkan URL Web App langsung di DEFAULT_GAS_URL di bawah ini
+    // atau mengaturnya melalui tombol "Koneksi Sheets" pada antarmuka web.
+    // =========================================================================
+    const DEFAULT_GAS_URL = '';
+    const GAS_STORAGE_KEY = 'SI_TIM_TEKNIS_KEMENSOS_2026_GAS_URL';
+
+    function getGasWebAppUrl() {
+      return (localStorage.getItem(GAS_STORAGE_KEY) || DEFAULT_GAS_URL || '').trim();
+    }
+
+    // =========================================================================
+    // 2. DATA CADANGAN LOKAL (59 TENAGA TEKNIS KEMENSOS RI 2026)
+    // =========================================================================
+    const INITIAL_DATA = [
+      { no: 1, nama: "Asy’ari", penempatan: "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "", profesi: "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", pendidikan: "S1 – Sekolah Tinggi Agama Islam Zainul Hasan", honor: 8000000 },
+      { no: 2, nama: "Moh. Wildan Farid", penempatan: "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "", profesi: "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", pendidikan: "S1 STAI Yamisa Bandung", honor: 8000000 },
+      { no: 3, nama: "Sugiharto", penempatan: "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "", profesi: "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", pendidikan: "S2 UNKRIS Jatiwaringin Pondok Gede Kota Bekasi", honor: 8000000 },
+      { no: 4, nama: "Husni Mubarok Nurjamil", penempatan: "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "", profesi: "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", pendidikan: "S1 – Universitas Nasional Fakultas Ilmu Hukum", honor: 8000000 },
+      { no: 5, nama: "M. Badi Zamanil Masnur, M.Si", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Seluruh Tim Kerja di Lingkungan Direktorat Perlindungan Sosial Non Kebencanaan", profesi: "Tenaga Teknis Penguatan Aksesibilitas dan Sinergitas Program bagi KPM PKH", pendidikan: "Magister S2", honor: 10000000 },
+      { no: 6, nama: "Solehudin Yusup, S.SOS.", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Penjangkauan Peserta Didik Sekolah Rakyat", profesi: "Tenaga Teknis Pengembangan Skema Penjangkauan peserta didik Sekolah Rakyat oleh PPPK Direktorat PSNK", pendidikan: "S1 Sosiologi", honor: 9000000 },
+      { no: 7, nama: "Bagus Putro Waluyo S.I.KOM.", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Penjangkauan Peserta Didik Sekolah Rakyat", profesi: "Tenaga Teknis Strategi Komunikasi Publik dalam Penjangkauan Peserta Didik Sekolah Rakyat oleh PPPK Direktorat PSNK", pendidikan: "S1 Fakultas Ilmu Komunikasi", honor: 9000000 },
+      { no: 8, nama: "MH. Irfan Makky, SE", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga", profesi: "Tenaga Teknis Pengembangan Sistem dan Implementasi Verifikasi Komitmen KPM PKH", pendidikan: "S1 Manajemen", honor: 9000000 },
+      { no: 9, nama: "Arip Nurahman, S.Ag.", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga", profesi: "Tenaga Teknis Pengembangan Skema Pertemuan Peningkatan Kemampuan Keluarga (P2K2) dalam PKH", pendidikan: "S1 Studi Agama", honor: 9000000 },
+      { no: 10, nama: "Andi Sahibudin. S.Ag.", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga", profesi: "Tenaga Teknis Hubungan antar kelembagaan dalam rangka Penguatan P2K2", pendidikan: "S1 Pendidikan Agama Islam", honor: 9000000 },
+      { no: 11, nama: "Ahmad Zainul Hassan, S.M", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Graduasi", profesi: "Tenaga Teknis Supervisi Keluarga Penerima Manfaat PKH menuju Graduasi", pendidikan: "S1 Ekonomi Manajemen", honor: 9000000 },
+      { no: 12, nama: "Zuliati", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Sumber Daya Manusia dan Tim Kerja Penilaian Kinerja Pegawai Pemerintah dengan Perjanjian Kerja", profesi: "Tenaga Teknis Skema Pemantauan Kinerja PPPK Direktorat PSNK", pendidikan: "S1 Manajemen", honor: 9000000 },
+      { no: 13, nama: "Iwan Alamsyah", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Bansos Program Keluarga Harapan (PKH)", profesi: "Tenaga Teknis Supervisi dan Evaluasi Bantuan Sosial PKH", pendidikan: "S1 Manajemen", honor: 9000000 },
+      { no: 14, nama: "Ahmad Shofie Azzaki", penempatan: "Direktorat Perlindungan Sosial Non Kebencanaan", uke_1: "Direktorat Jenderal Perlindungan dan Jaminan Sosial", mitra: "Tim Kerja Advokasi Sosial dan Bantuan Hukum", profesi: "Tenaga Teknis Advokasi Permasalahan KPM PKH", pendidikan: "S1 Ilmu Hukum", honor: 9000000 },
+      { no: 15, nama: "Bahrul Alam", penempatan: "Biro Perencanaan", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Tenaga Teknis Pelaksanaan Evaluasi Program Prioritas", pendidikan: "S2", honor: 9500000 },
+      { no: 16, nama: "Badai Pamungkas Putra", penempatan: "Biro Perencanaan", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Tenaga Teknis Perencana dan Kebijakan Strategis", pendidikan: "S2", honor: 9500000 },
+      { no: 17, nama: "Whasfi Velasufah", penempatan: "Biro Perencanaan", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Tenaga Teknis Bidang Penyiapan Data Perencanaan Nasional Kesejahteraan Sosial dan Program Strategis Sekolah Rakyat", pendidikan: "S2", honor: 7500000 },
+      { no: 18, nama: "Muhammad Rasyid Ridho", penempatan: "Biro Perencanaan", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Tenaga Teknis Bidang Monitoring dan Evaluasi Sekolah Rakyat", pendidikan: "S2", honor: 7500000 },
+      { no: 19, nama: "I Ketut Sakho Parthama", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Database Administrator Senior", pendidikan: "S-2 Ilmu Komputer, Universitas Budi Luhur, 2017", honor: 15000000 },
+      { no: 20, nama: "Muh. Imam Mudzakkir", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer Senior", pendidikan: "S-1 Teknik Informatika, UIN Syarif Hidayatullah Jakarta, 2013", honor: 13500000 },
+      { no: 21, nama: "Yongky Martindo Putra", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Mobile Developer Senior", pendidikan: "S-1 Teknik Informatika, Universitas Gunadarma, 2016", honor: 12300000 },
+      { no: 22, nama: "Suyono", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Pengolah Data Senior", pendidikan: "S-1 Teknik Informatika, Univ. Ahmad Dahlan Yogyakarta, 2005", honor: 19000000 },
+      { no: 23, nama: "Adriel Octiawan Setiaji", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer", pendidikan: "S-1 Sistem Informasi, Univ. Darma Persada, 2020", honor: 8700000 },
+      { no: 24, nama: "Resi Mairapon Saputra", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer Senior", pendidikan: "S-1 Sistem Informasi STIKOM Surabaya 2017", honor: 13500000 },
+      { no: 25, nama: "Nurul Istiqomah", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer", pendidikan: "D-IV Teknik Telekomunikasi, Politeknik Elektronika Negeri Surabaya, 2022", honor: 7200000 },
+      { no: 26, nama: "Kevin Helbert Wattimena", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Teknisi Perangkat Keras", pendidikan: "S-1 Teknik Informatika, Universitas Budi Luhur, 2022", honor: 6500000 },
+      { no: 27, nama: "Mohamad Afandi", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer", pendidikan: "S-1 Pendidikan Teknik Informatika dan Komputer, Universitas Negeri Semarang, 2022", honor: 9000000 },
+      { no: 28, nama: "Yudha Bagus Pratama", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Teknisi Perangkat Keras", pendidikan: "SMKN 1 Surabaya, Jurusan Rekayasa Perangkat Lunak, 2017", honor: 6000000 },
+      { no: 29, nama: "Bagus Bijak Kusumo", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Teknisi Perangkat Keras", pendidikan: "SMK Prima Unggul, Jurusan Teknik Komputer dan Jaringan, 2018", honor: 6000000 },
+      { no: 30, nama: "Bima Okta Adifani Hidayat", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Teknisi Perangkat Keras", pendidikan: "SMKN 1 Cipanas, Jurusan Teknik Komputer dan Jaringan, 2021", honor: 6000000 },
+      { no: 31, nama: "Leonard Onnanda Soli", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer", pendidikan: "S-1 Sistem Informasi, Universitas Dinamika Surabaya, 2022", honor: 8000000 },
+      { no: 32, nama: "Adhim Jati Kusuma", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Pengolah Data", pendidikan: "S-1 Sistem Informasi, Universitas Dinamika Surabaya, 2022", honor: 7500000 },
+      { no: 33, nama: "Gagah Hidayatullah", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Teknisi Perangkat Keras", pendidikan: "SMKN 1 Cikarang Selatan, Teknik Komputer dan Jaringan, 2019", honor: 6000000 },
+      { no: 34, nama: "Niken Ismi Destiani", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Tenaga Multimedia", pendidikan: "SMK Informatika Bina Generasi, Multimedia, 2023", honor: 6000000 },
+      { no: 35, nama: "Mariska Rosyitadewi", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Pengolah Data", pendidikan: "S-1 Teknik Informatika, Politeknik Elektronika Negeri Surabaya, 2015", honor: 10000000 },
+      { no: 36, nama: "Dodit Widiarto", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Teknisi Perangkat Keras", pendidikan: "S-1 Teknik Elektro, Universitas Mercu Buana, 2012", honor: 5800000 },
+      { no: 37, nama: "Aditya Manggala Putra", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer", pendidikan: "S-1 Teknik Informatika, Institut Teknologi Adhi Tama Surabaya, 2024", honor: 6750000 },
+      { no: 38, nama: "Dian Zur Indah Kumala", penempatan: "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", uke_1: "Sekretariat Jenderal", mitra: "", profesi: "Programmer", pendidikan: "S-1 Teknik Informat
