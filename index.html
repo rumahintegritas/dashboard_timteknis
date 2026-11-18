@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SI-TIM TEKNIS KEMENSOS RI — Sistem Informasi &amp; Monitoring Tenaga Teknis Tahun 2026</title>
+  <title>SI-TIM TEKNIS KEMENSOS RI — Monitoring Tenaga Teknis &amp; Arsip Dokumen 2026</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -37,9 +37,6 @@
     };
   </script>
 
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <!-- SheetJS (xlsx) CDN -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
@@ -51,12 +48,9 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    /* =========================================================================
-       DESIGN TOKENS: EXECUTIVE DEEP NAVY & GOLD (DARK DEFAULT) + LIGHT MODE
-       ========================================================================= */
     :root {
       --bg-body: #f1f5f9;
-      --bg-card: rgba(255, 255, 255, 0.96);
+      --bg-card: rgba(255, 255, 255, 0.97);
       --bg-surface: #e8eef6;
       --bg-surface-hover: #dce5f2;
       --text-main: #0f172a;
@@ -164,7 +158,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 8px;
       height: 8px;
@@ -182,14 +175,8 @@
     }
 
     @keyframes fadeSlideUp {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     .animate-fade-up {
@@ -197,12 +184,8 @@
     }
 
     @keyframes rowHighlightPulse {
-      0% {
-        background-color: rgba(16, 185, 129, 0.36);
-      }
-      100% {
-        background-color: transparent;
-      }
+      0% { background-color: rgba(16, 185, 129, 0.36); }
+      100% { background-color: transparent; }
     }
 
     .row-highlight-new {
@@ -255,9 +238,14 @@
 
         <!-- Global Executive Action Toolbar -->
         <div class="flex flex-wrap items-center gap-2">
-          <button onclick="syncFromGoogleSheets(false)" id="syncSheetsHeaderBtn" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
+          <button onclick="openBulkSkModal('', '')" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <span>Upload SK Kolektif</span>
+          </button>
+
+          <button onclick="syncFromGoogleSheets(false)" id="syncSheetsHeaderBtn" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#111C3A] hover:bg-[#17254D] text-sky-300 border border-sky-400/35 transition cursor-pointer">
             <i data-lucide="refresh-cw" id="syncBtnIcon" class="w-4 h-4"></i>
-            <span>Sinkronkan Google Sheets</span>
+            <span>Sinkronkan Sheets</span>
           </button>
 
           <button onclick="openPrintExcelPdfPreview()" class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#111C3A] hover:bg-[#17254D] text-amber-300 border border-amber-400/35 transition cursor-pointer">
@@ -278,7 +266,7 @@
         <nav class="flex flex-wrap items-center gap-1.5 bg-[#111C3A] p-1 rounded-xl border border-amber-500/25">
           <button id="tabBtnMaster" onclick="switchWorkspaceTab('master')" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-bold transition cursor-pointer bg-gradient-to-r from-amber-400 to-amber-500 text-[#0B132B] shadow">
             <i data-lucide="table-2" class="w-4 h-4"></i>
-            <span>Tab 1: Daftar &amp; Monitoring Tenaga Teknis + Upload Dokumen</span>
+            <span>Tab 1: Daftar Tenaga Teknis &amp; Upload Dokumen</span>
           </button>
           <button id="tabBtnGallery" onclick="switchWorkspaceTab('gallery')" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition cursor-pointer text-slate-300 hover:text-white">
             <i data-lucide="folder-check" class="w-4 h-4"></i>
@@ -301,170 +289,97 @@
   </header>
 
   <!-- ==================== MAIN DASHBOARD CONTENT ==================== -->
-  <main class="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
+  <main class="max-w-[1480px] mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
 
-    <!-- ==================== 4 KARTU KPI EKSEKUTIF ==================== -->
-    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      <!-- KPI 1: Total Tenaga Teknis -->
-      <div class="exec-card exec-card-hover rounded-2xl p-5">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Total Tenaga Teknis</p>
-            <h2 id="kpiTotalPersonil" class="text-3xl font-extrabold font-mono-num mt-1.5 gold-gradient-text">59</h2>
-          </div>
-          <div class="w-11 h-11 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 flex-shrink-0">
-            <i data-lucide="users" class="w-5 h-5"></i>
-          </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] flex flex-wrap items-center justify-between gap-2 text-xs">
-          <span id="kpiScopeSummary" class="font-semibold text-[var(--text-muted)]">2 UKE I &bull; 4 Unit Penempatan</span>
-          <span class="text-emerald-600 dark:text-emerald-400 font-bold">
-            <span id="kpiHasDocPersons">0</span> Ada Berkas
-          </span>
-        </div>
-      </div>
-
-      <!-- KPI 2: Pagu Honorarium / Bulan & Proyeksi Tahunan -->
-      <div class="exec-card exec-card-hover rounded-2xl p-5">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Pagu Honorarium / Bulan</p>
-            <h2 id="kpiMonthlyHonor" class="text-2xl sm:text-[24px] font-extrabold font-mono-num mt-1.5 text-emerald-600 dark:text-emerald-400">Rp 514.000.000</h2>
-          </div>
-          <div class="w-11 h-11 rounded-xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 flex-shrink-0">
-            <i data-lucide="wallet" class="w-5 h-5"></i>
-          </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs">
-          <span class="text-[var(--text-soft)]">Proyeksi Tahunan (12 Bln):</span>
-          <span id="kpiAnnualHonor" class="font-bold font-mono-num text-amber-600 dark:text-amber-300">Rp 6.168.000.000</span>
-        </div>
-      </div>
-
-      <!-- KPI 3: Rata-rata Honorarium -->
-      <div class="exec-card exec-card-hover rounded-2xl p-5">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Rata-Rata Honorarium / Bln</p>
-            <h2 id="kpiAvgHonor" class="text-2xl sm:text-[24px] font-extrabold font-mono-num mt-1.5 text-[var(--text-main)]">Rp 8.711.864</h2>
-          </div>
-          <div class="w-11 h-11 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-500 dark:text-sky-400 flex-shrink-0">
-            <i data-lucide="calculator" class="w-5 h-5"></i>
-          </div>
-        </div>
-        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs">
-          <span class="text-[var(--text-soft)]">Rentang Honorarium:</span>
-          <span id="kpiHonorRange" class="font-bold font-mono-num text-[var(--text-muted)]">Rp 5,8 Jt &ndash; Rp 19 Jt</span>
-        </div>
-      </div>
-
-      <!-- KPI 4: Kelengkapan Dokumen SK & Kontrak (Dual Progress Bars) -->
-      <div class="exec-card exec-card-hover rounded-2xl p-4 sm:p-5 flex flex-col justify-between">
-        <div class="flex items-center justify-between mb-2">
-          <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)]">Kelengkapan Dokumen 2026</p>
-          <span id="kpiTotalDocsBadge" class="px-2 py-0.5 rounded text-[10px] font-mono-num font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-400/35">
-            0 Berkas
-          </span>
-        </div>
-
-        <div class="space-y-2.5 text-xs">
-          <div>
-            <div class="flex justify-between font-bold mb-1">
-              <span class="text-emerald-600 dark:text-emerald-400">Dokumen SK</span>
-              <span id="kpiSkHeadline" class="font-mono-num text-[var(--text-main)]">0/59 &mdash; 0,0%</span>
-            </div>
-            <div class="w-full h-2 rounded-full bg-slate-300/35 dark:bg-slate-800 overflow-hidden">
-              <div id="kpiSkProgressBar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-500" style="width: 0%"></div>
-            </div>
-          </div>
-
-          <div>
-            <div class="flex justify-between font-bold mb-1">
-              <span class="text-sky-600 dark:text-sky-400">Dokumen Kontrak</span>
-              <span id="kpiKontrakHeadline" class="font-mono-num text-[var(--text-main)]">0/59 &mdash; 0,0%</span>
-            </div>
-            <div class="w-full h-2 rounded-full bg-slate-300/35 dark:bg-slate-800 overflow-hidden">
-              <div id="kpiKontrakProgressBar" class="h-full rounded-full bg-gradient-to-r from-sky-500 to-amber-400 transition-all duration-500" style="width: 0%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== KARTU KOMPARASI INFOGRAFIS UKE I INTERAKTIF ==================== -->
-    <section class="space-y-3">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400">
-            <i data-lucide="building-2" class="w-4 h-4"></i>
-          </div>
-          <div>
-            <h3 class="text-base sm:text-lg font-extrabold text-[var(--text-main)]">
-              Infografis Komparasi Tenaga Teknis &amp; Kesiapan Dokumen per UKE I
-            </h3>
-            <p class="text-xs text-[var(--text-soft)]">
-              Klik salah satu kartu UKE I untuk memfilter seluruh dashboard (Tabel Personil, Grafik, &amp; Galeri Arsip Dokumen)
-            </p>
-          </div>
-        </div>
-
-        <button id="showAllUkeBtn" onclick="clearUkeCardSelection()" class="hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400 text-[#0B132B] shadow hover:brightness-105 transition cursor-pointer self-start sm:self-auto">
-          <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-          <span>Tampilkan Semua UKE I</span>
-        </button>
-      </div>
-
-      <div id="ukeInfographicCards" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <!-- Rendered dynamically -->
-      </div>
-    </section>
-
-    <!-- ==================== 3 GRAFIK VISUAL ANALYTICS (CHART.JS) ==================== -->
+    <!-- ==================== INFOGRAFIS RINGKAS EKSEKUTIF (3 KOMPONEN INTI) ==================== -->
     <section class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-      <!-- Chart 1: Sebaran Personil & Total Honor per UKE I -->
-      <div class="exec-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
-        <div class="flex items-center justify-between mb-3">
+
+      <!-- KARTU 1: TOTAL TENAGA TEKNIS -->
+      <div class="exec-card exec-card-hover rounded-2xl p-5 lg:col-span-3 flex flex-col justify-between">
+        <div class="flex items-start justify-between gap-3">
           <div>
-            <h4 class="text-sm sm:text-base font-extrabold text-[var(--text-main)]">Sebaran Personil &amp; Honor per UKE I</h4>
-            <p class="text-xs text-[var(--text-soft)]">Komparasi Jumlah Personil &amp; Pagu Bulanan (Juta Rp)</p>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-400/35">
+              SDM TIM TEKNIS 2026
+            </span>
+            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)] mt-2">Total Tenaga Teknis</p>
+            <div class="flex items-baseline gap-2 mt-1">
+              <h2 id="kpiTotalPersonil" class="text-4xl font-extrabold font-mono-num gold-gradient-text">59</h2>
+              <span class="text-sm font-bold text-[var(--text-muted)]">Personil</span>
+            </div>
           </div>
-          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-400/30">UKE I</span>
+          <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 flex-shrink-0">
+            <i data-lucide="users" class="w-6 h-6"></i>
+          </div>
         </div>
-        <div class="relative flex-1 min-h-[260px] w-full">
-          <canvas id="chartUkeHonor"></canvas>
+
+        <div id="kpiUkeBreakdownMini" class="mt-4 pt-3 border-t border-[var(--border-subtle)] space-y-1.5 text-xs">
+          <!-- Rendered dynamically: Sekretariat Jenderal & Ditjen Linjamsos -->
         </div>
       </div>
 
-      <!-- Chart 2: Distribusi Personil per Unit Penempatan (Satker) -->
-      <div class="exec-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
-        <div class="flex items-center justify-between mb-3">
+      <!-- KARTU 2: NILAI RUPIAH TOTAL PER BULAN & PER TAHUN -->
+      <div class="exec-card exec-card-hover rounded-2xl p-5 lg:col-span-4 flex flex-col justify-between">
+        <div class="flex items-start justify-between gap-3">
           <div>
-            <h4 class="text-sm sm:text-base font-extrabold text-[var(--text-main)]">Distribusi Personil per Unit Penempatan</h4>
-            <p class="text-xs text-[var(--text-soft)]">Status Kelengkapan SK &amp; Kontrak per Satker</p>
+            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/35">
+              PAGU HONORARIUM TA 2026
+            </span>
+            <p class="text-xs font-bold uppercase tracking-wider text-[var(--text-soft)] mt-2">Nilai Rupiah Total per Bulan</p>
+            <h2 id="kpiMonthlyHonor" class="text-2xl sm:text-[28px] font-extrabold font-mono-num mt-1 text-emerald-600 dark:text-emerald-400">
+              Rp 514.000.000
+            </h2>
           </div>
-          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-400/30">Satker</span>
+          <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center text-emerald-500 dark:text-emerald-400 flex-shrink-0">
+            <i data-lucide="banknote" class="w-6 h-6"></i>
+          </div>
         </div>
-        <div class="relative flex-1 min-h-[260px] w-full">
-          <canvas id="chartUnitStatus"></canvas>
+
+        <div class="mt-4 pt-3 border-t border-[var(--border-subtle)]">
+          <div class="exec-surface rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2">
+            <div>
+              <p class="text-[11px] font-semibold text-[var(--text-soft)]">Nilai Rupiah Total per Tahun (12 Bulan)</p>
+              <p id="kpiAnnualHonor" class="text-base sm:text-lg font-extrabold font-mono-num text-amber-600 dark:text-amber-300 mt-0.5">
+                Rp 6.168.000.000
+              </p>
+            </div>
+            <span class="px-2 py-1 rounded-lg text-[10px] font-mono-num font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-400/30">
+              12 BLN
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Chart 3: Komposisi Kualifikasi Pendidikan -->
-      <div class="exec-card rounded-2xl p-5 lg:col-span-4 flex flex-col">
-        <div class="flex items-center justify-between mb-3">
+      <!-- KARTU 3: DOKUMEN TERUPLOAD PER UKE I & PENEMPATANNYA -->
+      <div class="exec-card rounded-2xl p-5 lg:col-span-5 flex flex-col justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
-            <h4 class="text-sm sm:text-base font-extrabold text-[var(--text-main)]">Komposisi Kualifikasi Pendidikan</h4>
-            <p class="text-xs text-[var(--text-soft)]">S1 (Sarjana), S2 (Magister), SMK/SMA, D-IV, D-III, Belum Tercatat</p>
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-400/35">
+                ARSIP SK &amp; KONTRAK
+              </span>
+              <span id="kpiTotalUploadedSummary" class="text-xs font-mono-num font-bold text-emerald-600 dark:text-emerald-400">
+                0 SK • 0 Kontrak
+              </span>
+            </div>
+            <h3 class="text-sm sm:text-base font-extrabold text-[var(--text-main)] mt-1">
+              Dokumen Terupload per UKE I &amp; Penempatan
+            </h3>
           </div>
-          <span class="px-2 py-0.5 text-[10px] font-bold uppercase rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/30">Jenjang</span>
+
+          <button id="resetScopeFilterBtn" onclick="clearScopeFilter()" class="hidden inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-400 text-[#0B132B] shadow cursor-pointer">
+            <i data-lucide="x" class="w-3 h-3"></i>
+            <span>Reset Filter Unit</span>
+          </button>
         </div>
-        <div class="relative flex-1 min-h-[260px] w-full">
-          <canvas id="chartEducationDoughnut"></canvas>
+
+        <div id="ukePenempatanDocSummaryList" class="space-y-2.5">
+          <!-- Rendered dynamically: UKE I + Unit Penempatan compact upload progress + quick bulk SK button -->
         </div>
       </div>
+
     </section>
 
-    <!-- ==================== TAB 1: DAFTAR & MONITORING TENAGA TEKNIS + UPLOAD DOKUMEN ==================== -->
+    <!-- ==================== TAB 1: DAFTAR TENAGA TEKNIS & UPLOAD DOKUMEN ==================== -->
     <section id="workspaceTabMaster" class="exec-card rounded-2xl overflow-hidden animate-fade-up">
       <div class="p-5 border-b border-[var(--border-subtle)] space-y-4">
         <!-- Title & Action Toolbar -->
@@ -472,7 +387,7 @@
           <div>
             <h3 class="text-base sm:text-lg font-extrabold text-[var(--text-main)] flex items-center gap-2">
               <i data-lucide="clipboard-list" class="w-5 h-5 text-amber-400"></i>
-              <span>Daftar &amp; Monitoring Tenaga Teknis + Upload Dokumen</span>
+              <span>Daftar Tenaga Teknis &amp; Upload Dokumen (Satuan &amp; SK Kolektif)</span>
             </h3>
             <p id="masterTableCounter" class="text-xs text-[var(--text-soft)] mt-0.5">
               Menampilkan 59 dari 59 personil tenaga teknis
@@ -480,29 +395,46 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="openPersonilFormModal(null)" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs cursor-pointer">
+            <button onclick="openBulkSkModal('', '')" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs cursor-pointer">
+              <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+              <span id="bulkSkToolbarLabel">Upload SK Kolektif per Penempatan</span>
+            </button>
+
+            <button onclick="openPersonilFormModal(null)" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-400/35 transition cursor-pointer">
               <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
               <span>+ Tambah Personil</span>
             </button>
 
-            <button onclick="syncFromGoogleSheets(false)" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-sky-500/15 hover:bg-sky-500/25 text-sky-600 dark:text-sky-300 border border-sky-400/35 transition cursor-pointer">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-              <span>Sinkronkan Sheets</span>
-            </button>
-
             <button onclick="document.getElementById('excelImportInput').click()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold exec-surface hover:border-amber-400/50 text-[var(--text-main)] transition cursor-pointer">
               <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-amber-400"></i>
-              <span>Import Excel (.xlsx)</span>
+              <span>Import Excel</span>
             </button>
 
             <button onclick="exportToExcel()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-300 border border-emerald-400/35 transition cursor-pointer">
               <i data-lucide="download" class="w-3.5 h-3.5"></i>
-              <span>Export Excel (.xlsx)</span>
+              <span>Export Excel</span>
             </button>
 
-            <button onclick="openPrintExcelPdfPreview()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-amber-500/15 hover:bg-amber-500/25 text-amber-600 dark:text-amber-300 border border-amber-400/35 transition cursor-pointer">
+            <button onclick="openPrintExcelPdfPreview()" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-sky-500/15 hover:bg-sky-500/25 text-sky-600 dark:text-sky-300 border border-sky-400/35 transition cursor-pointer">
               <i data-lucide="printer" class="w-3.5 h-3.5"></i>
-              <span>Cetak Daftar PDF (Kolom Excel + Status)</span>
+              <span>Cetak Daftar PDF</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Selection Action Banner (Appears when table checkboxes are checked) -->
+        <div id="tableSelectionBanner" class="hidden rounded-xl px-4 py-2.5 bg-amber-500/15 border border-amber-400/45 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-300">
+            <i data-lucide="check-square" class="w-4 h-4"></i>
+            <span id="selectedRowsCounterText">0 personil dipilih pada tabel</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openBulkSkFromTableSelection()" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs cursor-pointer">
+              <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+              <span>Upload 1 SK untuk Personil Terpilih</span>
+            </button>
+            <button onclick="clearTableRowSelection()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold exec-surface text-[var(--text-muted)] cursor-pointer">
+              Batal Pilih
             </button>
           </div>
         </div>
@@ -529,9 +461,10 @@
             <label for="filterStatusSelect" class="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-soft)] mb-1">3. Status Kelengkapan Dokumen</label>
             <select id="filterStatusSelect" onchange="applyFilters()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
               <option value="all">Semua Status Dokumen</option>
-              <option value="complete">Sudah Ada Dokumen (Lengkap SK &amp; Kontrak)</option>
-              <option value="partial">Parsial (SK Saja / Kontrak Saja)</option>
-              <option value="no_doc">Belum Ada Dokumen</option>
+              <option value="has_sk">Sudah Ada SK</option>
+              <option value="no_sk">Belum Ada SK</option>
+              <option value="complete">Lengkap (SK &amp; Kontrak)</option>
+              <option value="no_doc">Belum Ada Dokumen Sama Sekali</option>
             </select>
           </div>
 
@@ -543,7 +476,7 @@
                 type="text"
                 id="searchInput"
                 oninput="applyFilters()"
-                placeholder="Cari nama, profesi, pendidikan..."
+                placeholder="Cari nama, nomor SK, profesi..."
                 class="exec-input w-full pl-9 pr-8 py-2.5 rounded-xl text-xs sm:text-sm"
               />
               <button id="clearSearchBtn" onclick="clearSearchInput()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-soft)] hover:text-amber-400 cursor-pointer">
@@ -559,7 +492,10 @@
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="border-b border-[var(--border-subtle)] bg-slate-900/5 dark:bg-[#0B132B]/85 text-[11px] font-bold uppercase tracking-wider text-[var(--text-soft)]">
-              <th class="py-3.5 px-3.5 w-12 text-center">No</th>
+              <th class="py-3.5 px-3 w-10 text-center">
+                <input type="checkbox" id="selectAllFilteredCheckbox" onchange="toggleSelectAllVisibleRows(this.checked)" title="Pilih semua baris yang tampil" class="w-4 h-4 accent-amber-400 rounded cursor-pointer" />
+              </th>
+              <th class="py-3.5 px-3 w-12 text-center">No</th>
               <th class="py-3.5 px-3.5 min-w-[200px]">Nama &amp; Pendidikan</th>
               <th class="py-3.5 px-3.5 min-w-[215px]">UKE I &amp; Penempatan</th>
               <th class="py-3.5 px-3.5 min-w-[215px]">Profesi Keahlian &amp; Mitra</th>
@@ -587,7 +523,7 @@
       </div>
     </section>
 
-    <!-- ==================== TAB 2: GALERI ARSIP DOKUMEN TERUNGGAH (SK KEPUTUSAN & SPK KONTRAK 2026) ==================== -->
+    <!-- ==================== TAB 2: GALERI ARSIP DOKUMEN TERUNGGAH ==================== -->
     <section id="workspaceTabGallery" class="hidden space-y-4 animate-fade-up">
       <div class="exec-card rounded-2xl p-5 space-y-4">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
@@ -600,7 +536,7 @@
                 Galeri Arsip Dokumen Terunggah (SK Keputusan &amp; SPK Kontrak 2026)
               </h3>
               <p class="text-xs text-[var(--text-soft)] mt-0.5">
-                Pratinjau 1-klik seluruh berkas SK Keputusan &amp; SPK Kontrak yang terhubung dengan Google Drive &amp; Google Sheets
+                Pratinjau 1-klik seluruh berkas SK Keputusan &amp; SPK Kontrak (termasuk SK Kolektif / Gelondongan)
               </p>
             </div>
           </div>
@@ -661,7 +597,7 @@
                 type="text"
                 id="gallerySearchInput"
                 oninput="renderGalleryView()"
-                placeholder="Cari nama / nomor berkas / penempatan..."
+                placeholder="Cari nama / nomor SK / penempatan..."
                 class="exec-input w-full pl-9 pr-8 py-2.5 rounded-xl text-xs sm:text-sm"
               />
               <button id="clearGallerySearchBtn" onclick="clearGallerySearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-[var(--text-soft)] hover:text-amber-400 cursor-pointer">
@@ -684,15 +620,15 @@
         </div>
         <h4 class="text-base sm:text-lg font-extrabold text-[var(--text-main)]">Belum Ada Berkas Dokumen pada Filter Ini</h4>
         <p class="text-xs sm:text-sm text-[var(--text-soft)] max-w-md mx-auto mt-1">
-          Unggah dokumen SK atau Kontrak melalui Tab 1 (Daftar &amp; Monitoring Tenaga Teknis), atau klik Sinkronkan Google Sheets untuk memuat berkas terbaru dari Google Drive.
+          Unggah dokumen SK (satuan maupun kolektif gelondongan) atau Kontrak melalui Tab 1, atau klik Sinkronkan Sheets.
         </p>
         <div class="mt-4 flex flex-wrap items-center justify-center gap-2">
-          <button onclick="switchWorkspaceTab('master')" class="btn-gold inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs cursor-pointer">
-            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-            <span>Unggah Dokumen di Tab 1</span>
+          <button onclick="openBulkSkModal('', '')" class="btn-gold inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs cursor-pointer">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+            <span>Upload SK Kolektif Sekarang</span>
           </button>
-          <button onclick="syncFromGoogleSheets(false)" class="exec-surface hover:border-amber-400/50 px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--text-main)] cursor-pointer">
-            Sinkronkan Google Sheets
+          <button onclick="switchWorkspaceTab('master')" class="exec-surface hover:border-amber-400/50 px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--text-main)] cursor-pointer">
+            Kembali ke Daftar Pegawai
           </button>
         </div>
       </div>
@@ -706,10 +642,156 @@
     <p>Terintegrasi Google Sheets &amp; Google Drive Web App + Cadangan Lokal IndexedDB.</p>
   </footer>
 
-  <!-- ==================== MODAL 1: DOCUMENT VIEWER MODAL (GOOGLE DRIVE /PREVIEW & LOCAL BLOB) ==================== -->
+  <!-- ==================== MODAL 1: UPLOAD SK KOLEKTIF / GELONDONGAN PER PENEMPATAN ==================== -->
+  <div id="bulkSkModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+    <div class="exec-card w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl border border-amber-400/45 my-auto animate-fade-up">
+      <!-- Header -->
+      <div class="px-6 py-4 border-b border-[var(--border-subtle)] bg-[#0B132B] text-white flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-400/20 border border-amber-400/45 flex items-center justify-center text-amber-400 flex-shrink-0">
+            <i data-lucide="layers" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold">Upload SK Kolektif / Gelondongan per Penempatan</h3>
+            <p class="text-xs text-slate-300">Unggah 1 file atau 1 link Google Drive SK dengan Nomor SK yang sama untuk banyak personil sekaligus</p>
+          </div>
+        </div>
+        <button onclick="closeBulkSkModal()" class="p-2 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-5 sm:p-6 space-y-4 max-h-[78vh] overflow-y-auto">
+        <!-- Step 1: Filter Penempatan & Nomor SK Kolektif -->
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-6">
+            <label class="block text-xs font-bold text-[var(--text-muted)] mb-1">1. Filter Unit Penempatan (Satker)</label>
+            <select id="bulkPenempatanSelect" onchange="onBulkPenempatanFilterChange()" class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold cursor-pointer">
+              <option value="">Semua Unit Penempatan (59 Personil)</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-6">
+            <label class="block text-xs font-bold text-[var(--text-muted)] mb-1">2. Nomor SK Kolektif (Berlaku untuk Semua Terpilih) *</label>
+            <input
+              type="text"
+              id="bulkSkNumberInput"
+              placeholder="Contoh: KEP-015/OSDM/TT/2026"
+              class="exec-input font-mono-num w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm font-bold"
+            />
+          </div>
+        </div>
+
+        <!-- Step 2: Checklist Pegawai dalam Penempatan -->
+        <div class="exec-surface rounded-2xl p-4 space-y-3 border border-amber-400/25">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p class="text-xs font-extrabold text-[var(--text-main)]">
+                3. Pilih Daftar Penerima SK (<span id="bulkSelectedCountBadge" class="text-amber-500 dark:text-amber-300 font-mono-num">0</span> personil dipilih)
+              </p>
+              <p id="bulkScopeHint" class="text-[11px] text-[var(--text-soft)]">Centang nama pegawai yang tercantum dalam lampiran SK gelondongan ini</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button type="button" onclick="bulkSelectPreset('all_visible')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-400/20 text-amber-600 dark:text-amber-300 border border-amber-400/35 hover:bg-amber-400/30 cursor-pointer">
+                Pilih Semua di Unit Ini
+              </button>
+              <button type="button" onclick="bulkSelectPreset('no_sk_visible')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/35 hover:bg-emerald-500/25 cursor-pointer">
+                Pilih yang Belum Ada SK
+              </button>
+              <button type="button" onclick="bulkSelectPreset('clear')" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold exec-input text-[var(--text-soft)] hover:text-rose-400 cursor-pointer">
+                Kosongkan
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Search inside Checklist -->
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-[var(--text-soft)] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input
+              type="text"
+              id="bulkChecklistSearch"
+              oninput="renderBulkChecklist()"
+              placeholder="Saring nama pegawai di daftar ceklis..."
+              class="exec-input w-full pl-8 pr-3 py-2 rounded-xl text-xs"
+            />
+          </div>
+
+          <!-- Scrollable Checklist Box -->
+          <div id="bulkChecklistContainer" class="max-h-52 overflow-y-auto divide-y divide-[var(--border-subtle)] rounded-xl border border-[var(--border-subtle)] bg-black/5 dark:bg-[#0B132B]/70">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <!-- Step 3: Sumber Dokumen SK Kolektif (File PDF/Gambar vs Link Google Drive) -->
+        <div class="space-y-3">
+          <label class="block text-xs font-extrabold text-[var(--text-main)]">4. Sumber Dokumen SK Gelondongan</label>
+          <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl exec-surface">
+            <button type="button" id="bulkModeFileBtn" onclick="switchBulkUploadMode('file')" class="py-2 px-3 rounded-lg text-xs font-bold bg-amber-400 text-[#0B132B] shadow cursor-pointer transition">
+              (a) Upload 1 File PDF / Gambar SK
+            </button>
+            <button type="button" id="bulkModeLinkBtn" onclick="switchBulkUploadMode('link')" class="py-2 px-3 rounded-lg text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer transition">
+              (b) Simpan 1 Link Google Drive SK
+            </button>
+          </div>
+
+          <div id="bulkPanelFile" class="exec-surface rounded-2xl p-4 space-y-2 border border-amber-400/25">
+            <input
+              type="file"
+              id="bulkLocalFileInput"
+              accept=".pdf,image/jpeg,image/png,image/webp"
+              class="exec-input w-full px-3 py-2 rounded-xl text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-400 file:text-[#0B132B] cursor-pointer"
+            />
+            <p class="text-[11px] text-[var(--text-soft)]">
+              File diunggah <strong>1 kali</strong> ke Google Drive, lalu tautan &amp; Nomor SK yang sama otomatis dipasang ke seluruh pegawai yang dicentang di Google Sheets.
+            </p>
+          </div>
+
+          <div id="bulkPanelLink" class="hidden exec-surface rounded-2xl p-4 space-y-2 border border-sky-400/25">
+            <input
+              type="url"
+              id="bulkDriveUrlInput"
+              placeholder="https://drive.google.com/file/d/FILE_ID/view?usp=sharing"
+              class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm"
+            />
+            <p class="text-[11px] text-[var(--text-soft)]">
+              Tautan Google Drive ini akan disimpan sekaligus ke seluruh pegawai yang dicentang dan siap dipratinjau di masing-masing baris.
+            </p>
+          </div>
+        </div>
+
+        <!-- Live Progress Indicator during Batch Save -->
+        <div id="bulkProgressBox" class="hidden exec-surface rounded-xl p-3.5 border border-amber-400/40 space-y-2">
+          <div class="flex items-center justify-between text-xs font-bold">
+            <span id="bulkProgressText" class="text-amber-500 dark:text-amber-300">Menyimpan dokumen SK kolektif...</span>
+            <span id="bulkProgressPct" class="font-mono-num text-emerald-400">0%</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
+            <div id="bulkProgressBar" class="h-full bg-gradient-to-r from-amber-400 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+        <span class="text-[11px] text-[var(--text-soft)]">Semua perubahan otomatis tersinkron ke Google Sheets &amp; IndexedDB</span>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="closeBulkSkModal()" class="px-4 py-2.5 rounded-xl text-xs font-semibold exec-surface text-[var(--text-muted)] cursor-pointer">
+            Batal
+          </button>
+          <button type="button" id="submitBulkSkBtn" onclick="submitBulkSkUpload()" class="btn-gold inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm cursor-pointer">
+            <i data-lucide="layers" id="submitBulkSkIcon" class="w-4 h-4"></i>
+            <span id="submitBulkSkLabel">Simpan SK Kolektif</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: DOCUMENT VIEWER MODAL ==================== -->
   <div id="docViewerModal" class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md">
     <div class="exec-card w-full max-w-6xl h-[93vh] rounded-2xl overflow-hidden shadow-2xl border border-amber-400/45 flex flex-col animate-fade-up">
-      <!-- Top Bar -->
       <div class="px-4 sm:px-6 py-3.5 border-b border-[var(--border-subtle)] bg-[#0B132B] text-white flex flex-wrap items-center justify-between gap-3">
         <div class="flex items-center gap-3 min-w-0">
           <span id="viewerBadge" class="px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-amber-400 text-[#0B132B] flex-shrink-0">
@@ -724,20 +806,17 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <!-- Zoom In / Out / Reset Controls -->
           <div id="viewerZoomControls" class="flex items-center gap-1 bg-[#111C3A] px-2 py-1 rounded-xl border border-slate-700">
-            <button onclick="adjustViewerZoom(-0.15)" class="px-2 py-1 rounded text-xs font-bold text-slate-200 hover:bg-slate-800 cursor-pointer" title="Perkecil (Zoom Out)">-</button>
-            <button onclick="resetViewerZoom()" id="viewerZoomLabel" class="text-[11px] font-mono-num text-amber-300 px-1.5 hover:underline cursor-pointer" title="Reset Zoom 100%">100%</button>
-            <button onclick="adjustViewerZoom(0.15)" class="px-2 py-1 rounded text-xs font-bold text-slate-200 hover:bg-slate-800 cursor-pointer" title="Perbesar (Zoom In)">+</button>
+            <button onclick="adjustViewerZoom(-0.15)" class="px-2 py-1 rounded text-xs font-bold text-slate-200 hover:bg-slate-800 cursor-pointer" title="Perkecil">-</button>
+            <button onclick="resetViewerZoom()" id="viewerZoomLabel" class="text-[11px] font-mono-num text-amber-300 px-1.5 hover:underline cursor-pointer" title="Reset 100%">100%</button>
+            <button onclick="adjustViewerZoom(0.15)" class="px-2 py-1 rounded text-xs font-bold text-slate-200 hover:bg-slate-800 cursor-pointer" title="Perbesar">+</button>
           </div>
 
-          <!-- Switch between SK & Kontrak if employee has both -->
           <div id="viewerDocSwitcher" class="hidden items-center gap-1 bg-[#111C3A] p-1 rounded-xl border border-amber-400/30">
             <button id="switchToSkBtn" onclick="switchViewedDocType('sk')" class="px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">SK</button>
             <button id="switchToKontrakBtn" onclick="switchViewedDocType('kontrak')" class="px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer">Kontrak</button>
           </div>
 
-          <!-- Download / Open Original URL -->
           <button onclick="openOrDownloadCurrentDoc()" class="btn-gold inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs cursor-pointer">
             <i data-lucide="external-link" class="w-4 h-4"></i>
             <span id="viewerOpenActionLabel">Buka di Tab Baru / Unduh</span>
@@ -749,14 +828,12 @@
         </div>
       </div>
 
-      <!-- Context Strip -->
       <div id="viewerContextStrip" class="px-4 sm:px-6 py-2 border-b border-[var(--border-subtle)] bg-[#111C3A]/95 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-slate-200">
         <div><span class="text-slate-400">UKE I:</span> <strong id="viewerCtxUke">-</strong></div>
         <div><span class="text-slate-400">Penempatan:</span> <strong id="viewerCtxUnit">-</strong></div>
         <div><span class="text-slate-400">Honor/Bln:</span> <strong id="viewerCtxHonor" class="font-mono-num text-emerald-400">-</strong></div>
       </div>
 
-      <!-- Embedded Iframe / Image Container -->
       <div class="flex-1 bg-slate-950 relative overflow-auto flex items-center justify-center p-2 sm:p-4">
         <div id="viewerZoomWrapper" class="w-full h-full flex items-center justify-center transition-transform duration-200 origin-top">
           <iframe id="docIframeViewer" class="hidden w-full h-full rounded-xl bg-white border border-slate-700 shadow-2xl" allow="autoplay" title="Pratinjau Dokumen"></iframe>
@@ -766,7 +843,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 2: UPLOAD DOKUMEN MODAL (MODE FILE DRIVE & MODE LINK DRIVE) ==================== -->
+  <!-- ==================== MODAL 3: UPLOAD DOKUMEN SATUAN MODAL ==================== -->
   <div id="uploadDocModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
     <div class="exec-card w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl border border-amber-400/45 my-auto animate-fade-up">
       <div class="px-6 py-4 border-b border-[var(--border-subtle)] bg-[#0B132B] text-white flex items-center justify-between">
@@ -785,7 +862,6 @@
       </div>
 
       <div class="p-6 space-y-4">
-        <!-- Document Type Selector -->
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-bold text-[var(--text-muted)] mb-1">Jenis Dokumen</label>
@@ -800,7 +876,6 @@
           </div>
         </div>
 
-        <!-- Mode Switcher Tabs: (a) Upload File vs (b) Simpan Link Google Drive -->
         <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl exec-surface">
           <button type="button" id="uploadModeFileBtn" onclick="switchUploadMode('file')" class="py-2 px-3 rounded-lg text-xs font-bold bg-amber-400 text-[#0B132B] shadow cursor-pointer transition">
             (a) Upload File (PDF / Gambar)
@@ -810,7 +885,6 @@
           </button>
         </div>
 
-        <!-- Mode (a): Upload Local File to Google Drive via Apps Script -->
         <div id="uploadPanelFile" class="exec-surface rounded-2xl p-4 space-y-3 border border-amber-400/25">
           <label class="block text-xs font-bold text-[var(--text-main)]">
             Pilih File Dokumen (PDF, JPG, PNG, WEBP)
@@ -822,11 +896,10 @@
             class="exec-input w-full px-3 py-2.5 rounded-xl text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-400 file:text-[#0B132B] cursor-pointer"
           />
           <p class="text-[11px] text-[var(--text-soft)] leading-relaxed">
-            File akan diunggah langsung ke folder arsip <strong>Google Drive</strong> melalui Web App Apps Script dan tautannya otomatis tercatat ke baris pegawai pada <strong>Google Sheets</strong> serta dicadangkan di IndexedDB.
+            File diunggah langsung ke folder arsip <strong>Google Drive</strong> dan tercatat otomatis ke baris pegawai pada <strong>Google Sheets</strong>.
           </p>
         </div>
 
-        <!-- Mode (b): Paste Existing Google Drive URL -->
         <div id="uploadPanelLink" class="hidden exec-surface rounded-2xl p-4 space-y-3 border border-sky-400/25">
           <label class="block text-xs font-bold text-[var(--text-main)]">
             Tempel Tautan Google Drive / URL Dokumen
@@ -838,11 +911,10 @@
             class="exec-input w-full px-3 py-2.5 rounded-xl text-xs sm:text-sm"
           />
           <p class="text-[11px] text-[var(--text-soft)] leading-relaxed">
-            Tautan Google Drive (<code class="text-amber-400">/view</code> atau <code class="text-amber-400">open?id=</code>) akan otomatis dinormalisasi ke mode <code class="text-emerald-400">/preview</code> agar tampil mulus di pratinjau layar.
+            Tautan Google Drive otomatis dinormalisasi ke mode <code class="text-emerald-400">/preview</code> agar tampil mulus di pratinjau layar.
           </p>
         </div>
 
-        <!-- Current Document Status Info -->
         <div id="uploadCurrentDocInfo" class="text-xs px-3.5 py-2.5 rounded-xl exec-surface flex items-center justify-between gap-2">
           <span class="text-[var(--text-soft)]">Status Saat Ini:</span>
           <span id="uploadCurrentDocBadge" class="font-bold text-rose-400">Belum Ada Dokumen</span>
@@ -861,7 +933,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL 3: TAMBAH / EDIT PERSONIL MODAL ==================== -->
+  <!-- ==================== MODAL 4: TAMBAH / EDIT PERSONIL MODAL ==================== -->
   <div id="personilFormModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
     <div class="exec-card w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl border border-amber-400/45 my-auto animate-fade-up">
       <div class="px-6 py-4 border-b border-[var(--border-subtle)] bg-[#0B132B] text-white flex items-center justify-between">
@@ -944,80 +1016,20 @@
   <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
   <div id="toastContainer" class="fixed bottom-5 right-5 z-[60] flex flex-col gap-2.5 max-w-md w-full pointer-events-none px-4 sm:px-0"></div>
 
-  <!-- ==================== APPLICATION SCRIPT (CONNECTED TO LIVE GOOGLE APPS SCRIPT) ==================== -->
+  <!-- ==================== APPLICATION SCRIPT (FULLY SYNCED WITH CODE.GS) ==================== -->
   <script>
     // =========================================================================
-    // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT (SUDAH TERPASANG OTOMATIS)
+    // KONFIGURASI URL WEB APP GOOGLE APPS SCRIPT ANDA
     // =========================================================================
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwg-x0ccmXdAe5rPtxNLQPs3REyyj_K0AYGE-lqac_I3Bo8cYcAjtbYJv1Bk003B6Y8/exec";
 
     // =========================================================================
     // 1. EXACT 59 FALLBACK ROWS (Data_Tim_Teknis_per_UKE_I_2026_edit 14 Nop 2026.xlsx)
     // =========================================================================
-    const INITIAL_DATA = [
-      {"no":1,"nama":"Asy’ari","penempatan":"Sekretariat Ditjen Perlindungan dan Jaminan Sosial","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI","pendidikan":"S1 – Sekolah Tinggi Agama Islam Zainul Hasan","jenjang":"S1 (Sarjana)","honor":8000000},
-      {"no":2,"nama":"Moh. Wildan Farid","penempatan":"Sekretariat Ditjen Perlindungan dan Jaminan Sosial","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI","pendidikan":"S1 STAI Yamisa Bandung","jenjang":"S1 (Sarjana)","honor":8000000},
-      {"no":3,"nama":"Sugiharto","penempatan":"Sekretariat Ditjen Perlindungan dan Jaminan Sosial","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI","pendidikan":"S2 UNKRIS Jatiwaringin Pondok Gede Kota Bekasi","jenjang":"S2 (Magister)","honor":8000000},
-      {"no":4,"nama":"Husni Mubarok Nurjamil","penempatan":"Sekretariat Ditjen Perlindungan dan Jaminan Sosial","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI","pendidikan":"S1 – Universitas Nasional Fakultas Ilmu Hukum","jenjang":"S1 (Sarjana)","honor":8000000},
-      {"no":5,"nama":"M. Badi Zamanil Masnur, M.Si","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Seluruh Tim Kerja di Lingkungan Direktorat Perlindungan Sosial Non Kebencanaan","profesi_keahlian":"Tenaga Teknis Penguatan Aksesibilitas dan Sinergitas Program bagi KPM PKH","pendidikan":"Magister S2","jenjang":"S2 (Magister)","honor":10000000},
-      {"no":6,"nama":"Solehudin Yusup, S.SOS.","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Penjangkauan Peserta Didik Sekolah Rakyat","profesi_keahlian":"Tenaga Teknis Pengembangan Skema Penjangkauan peserta didik Sekolah Rakyat oleh PPPK Direktorat PSNK","pendidikan":"S1 Sosiologi","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":7,"nama":"Bagus Putro Waluyo S.I.KOM.","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Penjangkauan Peserta Didik Sekolah Rakyat","profesi_keahlian":"Tenaga Teknis Strategi Komunikasi Publik dalam Penjangkauan Peserta Didik Sekolah Rakyat oleh PPPK Direktorat PSNK","pendidikan":"S1 Fakultas Ilmu Komunikasi","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":8,"nama":"MH. Irfan Makky, SE","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga","profesi_keahlian":"Tenaga Teknis Pengembangan Sistem dan Implementasi Verifikasi Komitmen KPM PKH","pendidikan":"S1 Manajemen","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":9,"nama":"Arip Nurahman, S.Ag.","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga","profesi_keahlian":"Tenaga Teknis Pengembangan Skema Pertemuan Peningkatan Kemampuan Keluarga (P2K2) dalam PKH","pendidikan":"S1 Studi Agama","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":10,"nama":"Andi Sahibudin. S.Ag.","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga","profesi_keahlian":"Tenaga Teknis Hubungan antar kelembagaan dalam rangka Penguatan P2K2","pendidikan":"S1 Pendidikan Agama Islam","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":11,"nama":"Ahmad Zainul Hassan, S.M","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Graduasi","profesi_keahlian":"Tenaga Teknis Supervisi Keluarga Penerima Manfaat PKH menuju Graduasi","pendidikan":"S1 Ekonomi Manajemen","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":12,"nama":"Zuliati","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Sumber Daya Manusia dan Tim Kerja Penilaian Kinerja Pegawai Pemerintah dengan Perjanjian Kerja","profesi_keahlian":"Tenaga Teknis Skema Pemantauan Kinerja PPPK Direktorat PSNK","pendidikan":"S1 Manajemen","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":13,"nama":"Iwan Alamsyah","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Bansos Program Keluarga Harapan (PKH)","profesi_keahlian":"Tenaga Teknis Supervisi dan Evaluasi Bantuan Sosial PKH","pendidikan":"S1 Manajemen","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":14,"nama":"Ahmad Shofie Azzaki","penempatan":"Direktorat Perlindungan Sosial Non Kebencanaan","uke_1":"Direktorat Jenderal Perlindungan dan Jaminan Sosial","mitra_koordinasi":"Tim Kerja Advokasi Sosial dan Bantuan Hukum","profesi_keahlian":"Tenaga Teknis Advokasi Permasalahan KPM PKH","pendidikan":"S1 Ilmu Hukum","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":15,"nama":"Bahrul Alam","penempatan":"Biro Perencanaan","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Pelaksanaan Evaluasi Program Prioritas","pendidikan":"S2","jenjang":"S2 (Magister)","honor":9500000},
-      {"no":16,"nama":"Badai Pamungkas Putra","penempatan":"Biro Perencanaan","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Perencana dan Kebijakan Strategis","pendidikan":"S2","jenjang":"S2 (Magister)","honor":9500000},
-      {"no":17,"nama":"Whasfi Velasufah","penempatan":"Biro Perencanaan","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Bidang Penyiapan Data Perencanaan Nasional Kesejahteraan Sosial dan Program Strategis Sekolah Rakyat","pendidikan":"S2","jenjang":"S2 (Magister)","honor":7500000},
-      {"no":18,"nama":"Muhammad Rasyid Ridho","penempatan":"Biro Perencanaan","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Tenaga Teknis Bidang Monitoring dan Evaluasi Sekolah Rakyat","pendidikan":"S2","jenjang":"S2 (Magister)","honor":7500000},
-      {"no":19,"nama":"I Ketut Sakho Parthama","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Database Administrator Senior","pendidikan":"S-2 Ilmu Komputer, Universitas Budi Luhur, 2017","jenjang":"S2 (Magister)","honor":15000000},
-      {"no":20,"nama":"Muh. Imam Mudzakkir","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer Senior","pendidikan":"S-1 Teknik Informatika, UIN Syarif Hidayatullah Jakarta, 2013","jenjang":"S1 (Sarjana)","honor":13500000},
-      {"no":21,"nama":"Yongky Martindo Putra","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Mobile Developer Senior","pendidikan":"S-1 Teknik Informatika, Universitas Gunadarma, 2016","jenjang":"S1 (Sarjana)","honor":12300000},
-      {"no":22,"nama":"Suyono","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Pengolah Data Senior","pendidikan":"S-1 Teknik Informatika, Univ. Ahmad Dahlan Yogyakarta, 2005","jenjang":"S1 (Sarjana)","honor":19000000},
-      {"no":23,"nama":"Adriel Octiawan Setiaji","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Sistem Informasi, Univ. Darma Persada, 2020","jenjang":"S1 (Sarjana)","honor":8700000},
-      {"no":24,"nama":"Resi Mairapon Saputra","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer Senior","pendidikan":"S-1 Sistem Informasi STIKOM Surabaya 2017","jenjang":"S1 (Sarjana)","honor":13500000},
-      {"no":25,"nama":"Nurul Istiqomah","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"D-IV Teknik Telekomunikasi, Politeknik Elektronika Negeri Surabaya, 2022","jenjang":"D-IV","honor":7200000},
-      {"no":26,"nama":"Kevin Helbert Wattimena","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"S-1 Teknik Informatika, Universitas Budi Luhur, 2022","jenjang":"S1 (Sarjana)","honor":6500000},
-      {"no":27,"nama":"Mohamad Afandi","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Pendidikan Teknik Informatika dan Komputer, Universitas Negeri Semarang, 2022","jenjang":"S1 (Sarjana)","honor":9000000},
-      {"no":28,"nama":"Yudha Bagus Pratama","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"SMKN 1 Surabaya, Jurusan Rekayasa Perangkat Lunak, 2017","jenjang":"SMK/SMA","honor":6000000},
-      {"no":29,"nama":"Bagus Bijak Kusumo","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"SMK Prima Unggul, Jurusan Teknik Komputer dan Jaringan, 2018","jenjang":"SMK/SMA","honor":6000000},
-      {"no":30,"nama":"Bima Okta Adifani Hidayat","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"SMKN 1 Cipanas, Jurusan Teknik Komputer dan Jaringan, 2021","jenjang":"SMK/SMA","honor":6000000},
-      {"no":31,"nama":"Leonard Onnanda Soli","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Sistem Informasi, Universitas Dinamika Surabaya, 2022","jenjang":"S1 (Sarjana)","honor":8000000},
-      {"no":32,"nama":"Adhim Jati Kusuma","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Pengolah Data","pendidikan":"S-1 Sistem Informasi, Universitas Dinamika Surabaya, 2022","jenjang":"S1 (Sarjana)","honor":7500000},
-      {"no":33,"nama":"Gagah Hidayatullah","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"SMKN 1 Cikarang Selatan, Teknik Komputer dan Jaringan, 2019","jenjang":"SMK/SMA","honor":6000000},
-      {"no":34,"nama":"Niken Ismi Destiani","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Tenaga Multimedia","pendidikan":"SMK Informatika Bina Generasi, Multimedia, 2023","jenjang":"SMK/SMA","honor":6000000},
-      {"no":35,"nama":"Mariska Rosyitadewi","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Pengolah Data","pendidikan":"S-1 Teknik Informatika, Politeknik Elektronika Negeri Surabaya, 2015","jenjang":"S1 (Sarjana)","honor":10000000},
-      {"no":36,"nama":"Dodit Widiarto","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"S-1 Teknik Elektro, Universitas Mercu Buana, 2012","jenjang":"S1 (Sarjana)","honor":5800000},
-      {"no":37,"nama":"Aditya Manggala Putra","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Teknik Informatika, Institut Teknologi Adhi Tama Surabaya, 2024","jenjang":"S1 (Sarjana)","honor":6750000},
-      {"no":38,"nama":"Dian Zur Indah Kumala","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Teknik Informatika, Institut Teknologi Adhi Tama Surabaya, 2024","jenjang":"S1 (Sarjana)","honor":6750000},
-      {"no":39,"nama":"Shinta Amalia","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Quality Assurance","pendidikan":"S-1 Sistem Informasi, Institut Teknologi Sepuluh Nopember, 2024","jenjang":"S1 (Sarjana)","honor":6500000},
-      {"no":40,"nama":"Ifanu Antoni","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Sistem Administrator","pendidikan":"S-1 Teknik Informatika, Institut Teknologi Sepuluh Nopember, 2024","jenjang":"S1 (Sarjana)","honor":7000000},
-      {"no":41,"nama":"Muhammad Athariq Figo Dianto","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"SMK Prima Unggul, Jurusan Teknik Komputer Jaringan, 2018","jenjang":"SMK/SMA","honor":6000000},
-      {"no":42,"nama":"Julian Salman Alfarizy","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Teknisi Perangkat Keras","pendidikan":"SMK Muhammadiyah Kota Tasikmalaya, Teknik Komputer dan Jaringan, 2018","jenjang":"SMK/SMA","honor":6000000},
-      {"no":43,"nama":"Dani Ardiansyah","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"System Integrator","pendidikan":"D-III Teknik Instrumentasi dan Kontrol, IPB, 1998","jenjang":"D-III","honor":16500000},
-      {"no":44,"nama":"J. M. Ervan","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Network Administrator","pendidikan":"S-1 Teknik Geologi, UGM, 2001","jenjang":"S1 (Sarjana)","honor":13500000},
-      {"no":45,"nama":"Damarreindra Ihya Ulumudien","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Informatika, Universitas Singaperbangsa Karawang, 2024","jenjang":"S1 (Sarjana)","honor":6000000},
-      {"no":46,"nama":"Moch. Arief Febriansyah","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"D-IV Teknik Informatika, Politeknik Negeri Bandung, 2019","jenjang":"D-IV","honor":8000000},
-      {"no":47,"nama":"Irvan Fauziansyah","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer Senior","pendidikan":"S-1 Teknik Informatika, Amikom Yogyakarta, 2016","jenjang":"S1 (Sarjana)","honor":13500000},
-      {"no":48,"nama":"Nabilla Farassaskya Zanna","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"D-IV Teknik Elektro, Politeknik Negeri Jakarta, 2025","jenjang":"D-IV","honor":6000000},
-      {"no":49,"nama":"Annisa Octaviani Purwaningtyas","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"D-IV Teknik Elektro, Politeknik Negeri Jakarta, 2025","jenjang":"D-IV","honor":6000000},
-      {"no":50,"nama":"Aji Firman Cahya Wardhana","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Teknik Informatika, Universitas Brawijaya, 2023","jenjang":"S1 (Sarjana)","honor":6500000},
-      {"no":51,"nama":"Septian Ade Hidayat","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Teknik Informatika, Universitas Dian Nuswantoro, 2025","jenjang":"S1 (Sarjana)","honor":6000000},
-      {"no":52,"nama":"Annisa Asri Imana","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Pengolah Data","pendidikan":"S-1 Teknik Informatika, Universitas Gunadarma, 2016","jenjang":"S1 (Sarjana)","honor":8000000},
-      {"no":53,"nama":"Oki Maulana","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Tenaga Multimedia","pendidikan":"D-III Pertelevisian, Akademi Teknologi Komunikasi dan Informasi, 2013","jenjang":"D-III","honor":8000000},
-      {"no":54,"nama":"Febryanto Adriansyah","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Sistem Administrator","pendidikan":"S-1 Informatika, Universitas Gunadarma, 2025","jenjang":"S1 (Sarjana)","honor":6000000},
-      {"no":55,"nama":"Martin Marcelino Tarigan","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Sistem Informasi, Universitas Indonesia, 2026","jenjang":"S1 (Sarjana)","honor":6000000},
-      {"no":56,"nama":"M. Dobith Syadad Riyadi","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer","pendidikan":"S-1 Teknik Informatika, STIMIK Dharma Negara Bandung, 2024","jenjang":"S1 (Sarjana)","honor":6000000},
-      {"no":57,"nama":"Muhammad Makmun Rasyid","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Pengolah Data Senior","pendidikan":"S-2 Ilmu Al-Quran dan Tafsir, Institut Ilmu Al-Quran Jakarta, 2021","jenjang":"S2 (Magister)","honor":12000000},
-      {"no":58,"nama":"Maruba Ivan Tinambunan","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Programmer Senior","pendidikan":"S-1 Agribisnis, Universitas Sumatera Utara","jenjang":"S1 (Sarjana)","honor":12000000},
-      {"no":59,"nama":"Anggi Gunawan","penempatan":"Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)","uke_1":"Sekretariat Jenderal","mitra_koordinasi":"","profesi_keahlian":"Security Administrator","pendidikan":"","jenjang":"Belum Tercatat","honor":12000000}
-    ];
+    const INITIAL_DATA = [{"no": 1, "nama": "Asy’ari", "penempatan": "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", "pendidikan": "S1 – Sekolah Tinggi Agama Islam Zainul Hasan", "jenjang": "S1 (Sarjana)", "honor": 8000000}, {"no": 2, "nama": "Moh. Wildan Farid", "penempatan": "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", "pendidikan": "S1 STAI Yamisa Bandung", "jenjang": "S1 (Sarjana)", "honor": 8000000}, {"no": 3, "nama": "Sugiharto", "penempatan": "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", "pendidikan": "S2 UNKRIS Jatiwaringin Pondok Gede Kota Bekasi", "jenjang": "S2 (Magister)", "honor": 8000000}, {"no": 4, "nama": "Husni Mubarok Nurjamil", "penempatan": "Sekretariat Ditjen Perlindungan dan Jaminan Sosial", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Bidang Kehumasan Pada Ditjen Perlindungan dan Jaminan Sosial Pada Kementerian Sosial RI", "pendidikan": "S1 – Universitas Nasional Fakultas Ilmu Hukum", "jenjang": "S1 (Sarjana)", "honor": 8000000}, {"no": 5, "nama": "M. Badi Zamanil Masnur, M.Si", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Seluruh Tim Kerja di Lingkungan Direktorat Perlindungan Sosial Non Kebencanaan", "profesi_keahlian": "Tenaga Teknis Penguatan Aksesibilitas dan Sinergitas Program bagi KPM PKH", "pendidikan": "Magister S2", "jenjang": "S2 (Magister)", "honor": 10000000}, {"no": 6, "nama": "Solehudin Yusup, S.SOS.", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Penjangkauan Peserta Didik Sekolah Rakyat", "profesi_keahlian": "Tenaga Teknis Pengembangan Skema Penjangkauan peserta didik Sekolah Rakyat oleh PPPK Direktorat PSNK", "pendidikan": "S1 Sosiologi", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 7, "nama": "Bagus Putro Waluyo S.I.KOM.", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Penjangkauan Peserta Didik Sekolah Rakyat", "profesi_keahlian": "Tenaga Teknis Strategi Komunikasi Publik dalam Penjangkauan Peserta Didik Sekolah Rakyat oleh PPPK Direktorat PSNK", "pendidikan": "S1 Fakultas Ilmu Komunikasi", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 8, "nama": "MH. Irfan Makky, SE", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga", "profesi_keahlian": "Tenaga Teknis Pengembangan Sistem dan Implementasi Verifikasi Komitmen KPM PKH", "pendidikan": "S1 Manajemen", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 9, "nama": "Arip Nurahman, S.Ag.", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga", "profesi_keahlian": "Tenaga Teknis Pengembangan Skema Pertemuan Peningkatan Kemampuan Keluarga (P2K2) dalam PKH", "pendidikan": "S1 Studi Agama", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 10, "nama": "Andi Sahibudin. S.Ag.", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Verifikasi Komitmen dan Pertemuan Peningkatan Kemampuan Keluarga", "profesi_keahlian": "Tenaga Teknis Hubungan antar kelembagaan dalam rangka Penguatan P2K2", "pendidikan": "S1 Pendidikan Agama Islam", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 11, "nama": "Ahmad Zainul Hassan, S.M", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Graduasi", "profesi_keahlian": "Tenaga Teknis Supervisi Keluarga Penerima Manfaat PKH menuju Graduasi", "pendidikan": "S1 Ekonomi Manajemen", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 12, "nama": "Zuliati", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Sumber Daya Manusia dan Tim Kerja Penilaian Kinerja Pegawai Pemerintah dengan Perjanjian Kerja", "profesi_keahlian": "Tenaga Teknis Skema Pemantauan Kinerja PPPK Direktorat PSNK", "pendidikan": "S1 Manajemen", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 13, "nama": "Iwan Alamsyah", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Bansos Program Keluarga Harapan (PKH)", "profesi_keahlian": "Tenaga Teknis Supervisi dan Evaluasi Bantuan Sosial PKH", "pendidikan": "S1 Manajemen", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 14, "nama": "Ahmad Shofie Azzaki", "penempatan": "Direktorat Perlindungan Sosial Non Kebencanaan", "uke_1": "Direktorat Jenderal Perlindungan dan Jaminan Sosial", "mitra_koordinasi": "Tim Kerja Advokasi Sosial dan Bantuan Hukum", "profesi_keahlian": "Tenaga Teknis Advokasi Permasalahan KPM PKH", "pendidikan": "S1 Ilmu Hukum", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 15, "nama": "Bahrul Alam", "penempatan": "Biro Perencanaan", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Pelaksanaan Evaluasi Program Prioritas", "pendidikan": "S2", "jenjang": "S2 (Magister)", "honor": 9500000}, {"no": 16, "nama": "Badai Pamungkas Putra", "penempatan": "Biro Perencanaan", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Perencana dan Kebijakan Strategis", "pendidikan": "S2", "jenjang": "S2 (Magister)", "honor": 9500000}, {"no": 17, "nama": "Whasfi Velasufah", "penempatan": "Biro Perencanaan", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Bidang Penyiapan Data Perencanaan Nasional Kesejahteraan Sosial dan Program Strategis Sekolah Rakyat", "pendidikan": "S2", "jenjang": "S2 (Magister)", "honor": 7500000}, {"no": 18, "nama": "Muhammad Rasyid Ridho", "penempatan": "Biro Perencanaan", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Teknis Bidang Monitoring dan Evaluasi Sekolah Rakyat", "pendidikan": "S2", "jenjang": "S2 (Magister)", "honor": 7500000}, {"no": 19, "nama": "I Ketut Sakho Parthama", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Database Administrator Senior", "pendidikan": "S-2 Ilmu Komputer, Universitas Budi Luhur, 2017", "jenjang": "S2 (Magister)", "honor": 15000000}, {"no": 20, "nama": "Muh. Imam Mudzakkir", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer Senior", "pendidikan": "S-1 Teknik Informatika, UIN Syarif Hidayatullah Jakarta, 2013", "jenjang": "S1 (Sarjana)", "honor": 13500000}, {"no": 21, "nama": "Yongky Martindo Putra", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Mobile Developer Senior", "pendidikan": "S-1 Teknik Informatika, Universitas Gunadarma, 2016", "jenjang": "S1 (Sarjana)", "honor": 12300000}, {"no": 22, "nama": "Suyono", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Pengolah Data Senior", "pendidikan": "S-1 Teknik Informatika, Univ. Ahmad Dahlan Yogyakarta, 2005", "jenjang": "S1 (Sarjana)", "honor": 19000000}, {"no": 23, "nama": "Adriel Octiawan Setiaji", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Sistem Informasi, Univ. Darma Persada, 2020", "jenjang": "S1 (Sarjana)", "honor": 8700000}, {"no": 24, "nama": "Resi Mairapon Saputra", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer Senior", "pendidikan": "S-1 Sistem Informasi STIKOM Surabaya 2017", "jenjang": "S1 (Sarjana)", "honor": 13500000}, {"no": 25, "nama": "Nurul Istiqomah", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "D-IV Teknik Telekomunikasi, Politeknik Elektronika Negeri Surabaya, 2022", "jenjang": "D-IV", "honor": 7200000}, {"no": 26, "nama": "Kevin Helbert Wattimena", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "S-1 Teknik Informatika, Universitas Budi Luhur, 2022", "jenjang": "S1 (Sarjana)", "honor": 6500000}, {"no": 27, "nama": "Mohamad Afandi", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Pendidikan Teknik Informatika dan Komputer, Universitas Negeri Semarang, 2022", "jenjang": "S1 (Sarjana)", "honor": 9000000}, {"no": 28, "nama": "Yudha Bagus Pratama", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "SMKN 1 Surabaya, Jurusan Rekayasa Perangkat Lunak, 2017", "jenjang": "SMK/SMA", "honor": 6000000}, {"no": 29, "nama": "Bagus Bijak Kusumo", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "SMK Prima Unggul, Jurusan Teknik Komputer dan Jaringan, 2018", "jenjang": "SMK/SMA", "honor": 6000000}, {"no": 30, "nama": "Bima Okta Adifani Hidayat", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "SMKN 1 Cipanas, Jurusan Teknik Komputer dan Jaringan, 2021", "jenjang": "SMK/SMA", "honor": 6000000}, {"no": 31, "nama": "Leonard Onnanda Soli", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Sistem Informasi, Universitas Dinamika Surabaya, 2022", "jenjang": "S1 (Sarjana)", "honor": 8000000}, {"no": 32, "nama": "Adhim Jati Kusuma", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Pengolah Data", "pendidikan": "S-1 Sistem Informasi, Universitas Dinamika Surabaya, 2022", "jenjang": "S1 (Sarjana)", "honor": 7500000}, {"no": 33, "nama": "Gagah Hidayatullah", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "SMKN 1 Cikarang Selatan, Teknik Komputer dan Jaringan, 2019", "jenjang": "SMK/SMA", "honor": 6000000}, {"no": 34, "nama": "Niken Ismi Destiani", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Multimedia", "pendidikan": "SMK Informatika Bina Generasi, Multimedia, 2023", "jenjang": "SMK/SMA", "honor": 6000000}, {"no": 35, "nama": "Mariska Rosyitadewi", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Pengolah Data", "pendidikan": "S-1 Teknik Informatika, Politeknik Elektronika Negeri Surabaya, 2015", "jenjang": "S1 (Sarjana)", "honor": 10000000}, {"no": 36, "nama": "Dodit Widiarto", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "S-1 Teknik Elektro, Universitas Mercu Buana, 2012", "jenjang": "S1 (Sarjana)", "honor": 5800000}, {"no": 37, "nama": "Aditya Manggala Putra", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Teknik Informatika, Institut Teknologi Adhi Tama Surabaya, 2024", "jenjang": "S1 (Sarjana)", "honor": 6750000}, {"no": 38, "nama": "Dian Zur Indah Kumala", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Teknik Informatika, Institut Teknologi Adhi Tama Surabaya, 2024", "jenjang": "S1 (Sarjana)", "honor": 6750000}, {"no": 39, "nama": "Shinta Amalia", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Quality Assurance", "pendidikan": "S-1 Sistem Informasi, Institut Teknologi Sepuluh Nopember, 2024", "jenjang": "S1 (Sarjana)", "honor": 6500000}, {"no": 40, "nama": "Ifanu Antoni", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Sistem Administrator", "pendidikan": "S-1 Teknik Informatika, Institut Teknologi Sepuluh Nopember, 2024", "jenjang": "S1 (Sarjana)", "honor": 7000000}, {"no": 41, "nama": "Muhammad Athariq Figo Dianto", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "SMK Prima Unggul, Jurusan Teknik Komputer Jaringan, 2018", "jenjang": "SMK/SMA", "honor": 6000000}, {"no": 42, "nama": "Julian Salman Alfarizy", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Teknisi Perangkat Keras", "pendidikan": "SMK Muhammadiyah Kota Tasikmalaya, Teknik Komputer dan Jaringan, 2018", "jenjang": "SMK/SMA", "honor": 6000000}, {"no": 43, "nama": "Dani Ardiansyah", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "System Integrator", "pendidikan": "D-III Teknik Instrumentasi dan Kontrol, IPB, 1998", "jenjang": "D-III", "honor": 16500000}, {"no": 44, "nama": "J. M. Ervan", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Network Administrator", "pendidikan": "S-1 Teknik Geologi, UGM, 2001", "jenjang": "S1 (Sarjana)", "honor": 13500000}, {"no": 45, "nama": "Damarreindra Ihya Ulumudien", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Informatika, Universitas Singaperbangsa Karawang, 2024", "jenjang": "S1 (Sarjana)", "honor": 6000000}, {"no": 46, "nama": "Moch. Arief Febriansyah", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "D-IV Teknik Informatika, Politeknik Negeri Bandung, 2019", "jenjang": "D-IV", "honor": 8000000}, {"no": 47, "nama": "Irvan Fauziansyah", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer Senior", "pendidikan": "S-1 Teknik Informatika, Amikom Yogyakarta, 2016", "jenjang": "S1 (Sarjana)", "honor": 13500000}, {"no": 48, "nama": "Nabilla Farassaskya Zanna", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "D-IV Teknik Elektro, Politeknik Negeri Jakarta, 2025", "jenjang": "D-IV", "honor": 6000000}, {"no": 49, "nama": "Annisa Octaviani Purwaningtyas", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "D-IV Teknik Elektro, Politeknik Negeri Jakarta, 2025", "jenjang": "D-IV", "honor": 6000000}, {"no": 50, "nama": "Aji Firman Cahya Wardhana", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Teknik Informatika, Universitas Brawijaya, 2023", "jenjang": "S1 (Sarjana)", "honor": 6500000}, {"no": 51, "nama": "Septian Ade Hidayat", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Teknik Informatika, Universitas Dian Nuswantoro, 2025", "jenjang": "S1 (Sarjana)", "honor": 6000000}, {"no": 52, "nama": "Annisa Asri Imana", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Pengolah Data", "pendidikan": "S-1 Teknik Informatika, Universitas Gunadarma, 2016", "jenjang": "S1 (Sarjana)", "honor": 8000000}, {"no": 53, "nama": "Oki Maulana", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Tenaga Multimedia", "pendidikan": "D-III Pertelevisian, Akademi Teknologi Komunikasi dan Informasi, 2013", "jenjang": "D-III", "honor": 8000000}, {"no": 54, "nama": "Febryanto Adriansyah", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Sistem Administrator", "pendidikan": "S-1 Informatika, Universitas Gunadarma, 2025", "jenjang": "S1 (Sarjana)", "honor": 6000000}, {"no": 55, "nama": "Martin Marcelino Tarigan", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Sistem Informasi, Universitas Indonesia, 2026", "jenjang": "S1 (Sarjana)", "honor": 6000000}, {"no": 56, "nama": "M. Dobith Syadad Riyadi", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer", "pendidikan": "S-1 Teknik Informatika, STIMIK Dharma Negara Bandung, 2024", "jenjang": "S1 (Sarjana)", "honor": 6000000}, {"no": 57, "nama": "Muhammad Makmun Rasyid", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Pengolah Data Senior", "pendidikan": "S-2 Ilmu Al-Quran dan Tafsir, Institut Ilmu Al-Quran Jakarta, 2021", "jenjang": "S2 (Magister)", "honor": 12000000}, {"no": 58, "nama": "Maruba Ivan Tinambunan", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Programmer Senior", "pendidikan": "S-1 Agribisnis, Universitas Sumatera Utara", "jenjang": "S1 (Sarjana)", "honor": 12000000}, {"no": 59, "nama": "Anggi Gunawan", "penempatan": "Pusat Data dan Informasi Kesejahteraan Sosial (Pusdatin Kesos)", "uke_1": "Sekretariat Jenderal", "mitra_koordinasi": "", "profesi_keahlian": "Security Administrator", "pendidikan": "", "jenjang": "Belum Tercatat", "honor": 12000000}];
 
     // =========================================================================
-    // 2. INDEXEDDB PERSISTENT LOCAL BACKUP (SI_TimTeknis_Kemensos_2026)
+    // 2. INDEXEDDB PERSISTENT LOCAL BACKUP
     // =========================================================================
     const DB_NAME = 'SI_TimTeknis_Kemensos_2026';
     const DB_VERSION = 1;
@@ -1036,7 +1048,7 @@
             db.createObjectStore('appCache', { keyPath: 'id' });
           }
           if (!db.objectStoreNames.contains('localFiles')) {
-            db.createObjectStore('localFiles', { keyPath: 'key' }); // key: `${no}_${jenis}`
+            db.createObjectStore('localFiles', { keyPath: 'key' });
           }
         };
         request.onsuccess = (e) => {
@@ -1121,36 +1133,39 @@
     }
 
     // =========================================================================
-    // 3. STATE MANAGEMENT & NORMALIZATION HELPERS
+    // 3. STATE MANAGEMENT & NORMALIZATION (COMPATIBLE WITH CODE.GS NESTED OBJECTS)
     // =========================================================================
     let personnelList = [];
-    let localFileBackups = {}; // key: `${no}_SK` or `${no}_KONTRAK`
+    let localFileBackups = {};
     let filteredPersonnel = [];
     let selectedUkeFilter = '';
+    let selectedPenempatanFilter = '';
     let activeWorkspaceTab = 'master';
     let newlyHighlightedNo = null;
+    let selectedTableRowNos = new Set();
 
-    // Upload Modal State
+    // Single Upload Modal State
     let uploadModalState = {
       personNo: null,
+      mode: 'file'
+    };
+
+    // Bulk Collective SK Modal State
+    let bulkSkState = {
+      selectedNos: new Set(),
       mode: 'file' // 'file' | 'link'
     };
 
     // Document Viewer Modal State
     let viewerState = {
       personNo: null,
-      docType: 'sk', // 'sk' | 'kontrak' | 'report'
+      docType: 'sk',
       originalUrl: '',
       blobUrl: null,
       jsPdfDoc: null,
       fileName: 'Dokumen_Kemensos_2026.pdf',
       zoom: 1
     };
-
-    // Chart.js Instances
-    let chartUkeHonorInstance = null;
-    let chartUnitStatusInstance = null;
-    let chartEduDoughnutInstance = null;
 
     function deriveEducationLevel(pendidikan) {
       const s = (pendidikan || '').toUpperCase().trim();
@@ -1164,7 +1179,7 @@
       return 'Lainnya';
     }
 
-    // Flexible Row Normalizer for Google Sheets `doGet` & Excel Import
+    // Normalizes both Code.gs nested JSON (`sk: { previewUrl, docNumber, ... }`) AND flat Excel/Cache columns
     function normalizePersonRecord(raw, fallbackIndex = 0) {
       const lowerMap = {};
       Object.keys(raw || {}).forEach(k => {
@@ -1174,7 +1189,6 @@
       const noVal = Number(lowerMap['no'] || lowerMap['nomor'] || (fallbackIndex + 1));
       const nama = String(lowerMap['nama'] || lowerMap['nama lengkap'] || '').trim();
       const penempatan = String(lowerMap['penempatan'] || lowerMap['unit penempatan'] || '').trim();
-      // Penting: Hilangkan spasi berlebih di ujung seperti 'Sekretariat Jenderal '
       const uke1 = String(lowerMap['uke_1'] || lowerMap['uke 1'] || lowerMap['uke i'] || '').trim();
       const mitra = String(lowerMap['mitra_koordinasi'] || lowerMap['mitra koordinasi'] || lowerMap['mitra'] || '').trim();
       const profesi = String(lowerMap['profesi_keahlian'] || lowerMap['profesi keahlian'] || lowerMap['profesi'] || '').trim();
@@ -1185,25 +1199,48 @@
         ? honorRaw
         : Number(String(honorRaw).replace(/[^0-9]/g, '')) || 0;
 
+      // Read nested `sk` & `kontrak` objects returned by Code.gs readAllRecords()
+      const skObj = (raw && typeof raw.sk === 'object' && raw.sk !== null) ? raw.sk : null;
+      const kontrakObj = (raw && typeof raw.kontrak === 'object' && raw.kontrak !== null) ? raw.kontrak : null;
+
       const skUrl = String(
+        (skObj && (skObj.previewUrl || skObj.downloadUrl || skObj.fileName)) ||
         lowerMap['skurl'] ||
         lowerMap['sk_url'] ||
+        lowerMap['file sk'] ||
         lowerMap['dokumen_sk'] ||
         lowerMap['dokumen sk'] ||
-        lowerMap['dolumen sk'] ||
         ''
       ).trim();
 
       const kontrakUrl = String(
+        (kontrakObj && (kontrakObj.previewUrl || kontrakObj.downloadUrl || kontrakObj.fileName)) ||
         lowerMap['kontrakurl'] ||
         lowerMap['kontrak_url'] ||
+        lowerMap['file kontrak'] ||
         lowerMap['dokumen_kontrak'] ||
         lowerMap['dokumen kontrak'] ||
         ''
       ).trim();
 
-      const skNumber = String(lowerMap['sknumber'] || lowerMap['nomor_sk'] || lowerMap['nomor sk'] || '').trim();
-      const kontrakNumber = String(lowerMap['kontraknumber'] || lowerMap['nomor_kontrak'] || lowerMap['nomor kontrak'] || '').trim();
+      const skNumber = String(
+        (skObj && skObj.docNumber) ||
+        lowerMap['sknumber'] ||
+        lowerMap['nomor_sk'] ||
+        lowerMap['nomor sk'] ||
+        ''
+      ).trim();
+
+      const kontrakNumber = String(
+        (kontrakObj && kontrakObj.docNumber) ||
+        lowerMap['kontraknumber'] ||
+        lowerMap['nomor_kontrak'] ||
+        lowerMap['nomor kontrak'] ||
+        ''
+      ).trim();
+
+      const skFileName = String((skObj && skObj.fileName) || lowerMap['file sk'] || '').trim();
+      const kontrakFileName = String((kontrakObj && kontrakObj.fileName) || lowerMap['file kontrak'] || '').trim();
 
       return {
         no: noVal,
@@ -1218,25 +1255,23 @@
         skUrl,
         kontrakUrl,
         skNumber,
-        kontrakNumber
+        kontrakNumber,
+        skFileName,
+        kontrakFileName
       };
     }
 
-    // Smart Google Drive URL Normalizer -> /preview for iframe embedding
     function normalizePreviewUrl(url) {
       if (!url) return '';
       const trimmed = String(url).trim();
-      // Match https://drive.google.com/file/d/FILE_ID/...
       const fileMatch = trimmed.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
       if (fileMatch && fileMatch[1]) {
         return `https://drive.google.com/file/d/${fileMatch[1]}/preview`;
       }
-      // Match https://drive.google.com/open?id=FILE_ID or uc?id=FILE_ID
       const idParamMatch = trimmed.match(/drive\.google\.com\/(?:open|uc)\?[^#]*id=([a-zA-Z0-9_-]+)/);
       if (idParamMatch && idParamMatch[1]) {
         return `https://drive.google.com/file/d/${idParamMatch[1]}/preview`;
       }
-      // Match Google Docs / Sheets / Slides
       const docsMatch = trimmed.match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/);
       if (docsMatch && docsMatch[1] && docsMatch[2]) {
         return `https://docs.google.com/${docsMatch[1]}/d/${docsMatch[2]}/preview`;
@@ -1255,11 +1290,11 @@
     }
 
     function hasSkDocument(person) {
-      return Boolean((person.skUrl && person.skUrl.length > 0) || localFileBackups[`${person.no}_SK`]);
+      return Boolean((person.skUrl && person.skUrl.length > 0) || (person.skNumber && person.skNumber.length > 0) || localFileBackups[`${person.no}_SK`]);
     }
 
     function hasKontrakDocument(person) {
-      return Boolean((person.kontrakUrl && person.kontrakUrl.length > 0) || localFileBackups[`${person.no}_KONTRAK`]);
+      return Boolean((person.kontrakUrl && person.kontrakUrl.length > 0) || (person.kontrakNumber && person.kontrakNumber.length > 0) || localFileBackups[`${person.no}_KONTRAK`]);
     }
 
     function formatRupiah(amount) {
@@ -1317,7 +1352,7 @@
     }
 
     // =========================================================================
-    // 4. LIVE GOOGLE APPS SCRIPT INTEGRATION (`doGet` & CORS-Safe `doPost`)
+    // 4. LIVE GOOGLE APPS SCRIPT INTEGRATION (`doGet` & `doPost` MATCHING CODE.GS)
     // =========================================================================
     async function syncFromGoogleSheets(isInitialLoad = false) {
       updateSyncStatusBadge('syncing');
@@ -1325,7 +1360,7 @@
       if (syncBtnIcon) syncBtnIcon.classList.add('animate-spin');
 
       try {
-        const response = await fetch(GAS_WEB_APP_URL, {
+        const response = await fetch(`${GAS_WEB_APP_URL}?action=getAll`, {
           method: 'GET',
           cache: 'no-store'
         });
@@ -1335,33 +1370,16 @@
         }
 
         const json = await response.json();
-        let rawArray = null;
-
-        if (Array.isArray(json)) {
-          rawArray = json;
-        } else if (json && Array.isArray(json.data)) {
-          rawArray = json.data;
-        } else if (json && Array.isArray(json.records)) {
-          rawArray = json.records;
+        if (json && json.status === 'error') {
+          throw new Error(json.message || 'Server error');
         }
 
-        if (rawArray && rawArray.length > 0) {
-          const prevMap = {};
-          personnelList.forEach(p => { prevMap[p.no] = p; });
+        let rawArray = Array.isArray(json) ? json : (json && Array.isArray(json.data) ? json.data : null);
 
+        if (rawArray && rawArray.length > 0) {
           const normalizedList = rawArray
             .map((row, idx) => normalizePersonRecord(row, idx))
-            .filter(item => item.nama.length > 0)
-            .map(item => {
-              const prev = prevMap[item.no];
-              return {
-                ...item,
-                skUrl: item.skUrl || (prev ? prev.skUrl : ''),
-                kontrakUrl: item.kontrakUrl || (prev ? prev.kontrakUrl : ''),
-                skNumber: item.skNumber || (prev ? prev.skNumber : ''),
-                kontrakNumber: item.kontrakNumber || (prev ? prev.kontrakNumber : '')
-              };
-            });
+            .filter(item => item.nama.length > 0);
 
           if (normalizedList.length > 0) {
             personnelList = normalizedList;
@@ -1395,7 +1413,7 @@
       }
     }
 
-    // CORS-Safe POST Helper (text/plain;charset=utf-8 prevents OPTIONS preflight rejection)
+    // CORS-Safe POST Helper matching Code.gs `doPost(e)`
     async function postToGoogleAppsScript(payload) {
       const response = await fetch(GAS_WEB_APP_URL, {
         method: 'POST',
@@ -1407,15 +1425,19 @@
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      return await response.json();
+      const json = await response.json();
+      if (json && json.status === 'error') {
+        throw new Error(json.message || 'Terjadi kesalahan pada server Apps Script');
+      }
+      return json;
     }
 
     // =========================================================================
-    // 5. CASCADING FILTERS (TAB 1, UKE I CARDS & TAB 2 GALLERY)
+    // 5. CASCADING FILTERS (INFOGRAFIS, TAB 1 & TAB 2 GALLERY)
     // =========================================================================
     function populatePenempatanOptions() {
       const selectEl = document.getElementById('filterPenempatanSelect');
-      const prevVal = selectEl.value;
+      const prevVal = selectedPenempatanFilter || selectEl.value;
       const source = selectedUkeFilter
         ? personnelList.filter(p => p.uke_1 === selectedUkeFilter)
         : personnelList;
@@ -1430,7 +1452,12 @@
       selectEl.innerHTML = `<option value="">Semua Unit Penempatan (${units.length})</option>` +
         units.map(u => `<option value="${escapeHtml(u)}">${escapeHtml(u)} (${unitMap[u]})</option>`).join('');
 
-      if (units.includes(prevVal)) selectEl.value = prevVal;
+      if (units.includes(prevVal)) {
+        selectEl.value = prevVal;
+      } else {
+        selectEl.value = '';
+        selectedPenempatanFilter = '';
+      }
     }
 
     function populateGalleryPenempatanOptions() {
@@ -1470,8 +1497,39 @@
       }
     }
 
+    function filterByUnitFromInfographic(ukeName, penempatanName = '') {
+      if (selectedUkeFilter === ukeName && selectedPenempatanFilter === penempatanName) {
+        clearScopeFilter();
+        return;
+      }
+      selectedUkeFilter = ukeName;
+      selectedPenempatanFilter = penempatanName;
+
+      document.getElementById('filterUkeSelect').value = ukeName;
+      document.getElementById('galleryUkeFilter').value = ukeName;
+      populatePenempatanOptions();
+      populateGalleryPenempatanOptions();
+
+      document.getElementById('filterPenempatanSelect').value = penempatanName;
+      document.getElementById('galleryPenempatanFilter').value = penempatanName;
+      applyFilters();
+    }
+
+    function clearScopeFilter() {
+      selectedUkeFilter = '';
+      selectedPenempatanFilter = '';
+      document.getElementById('filterUkeSelect').value = '';
+      document.getElementById('galleryUkeFilter').value = '';
+      populatePenempatanOptions();
+      populateGalleryPenempatanOptions();
+      document.getElementById('filterPenempatanSelect').value = '';
+      document.getElementById('galleryPenempatanFilter').value = '';
+      applyFilters();
+    }
+
     function onUkeDropdownChange() {
       selectedUkeFilter = document.getElementById('filterUkeSelect').value;
+      selectedPenempatanFilter = '';
       document.getElementById('galleryUkeFilter').value = selectedUkeFilter;
       populatePenempatanOptions();
       populateGalleryPenempatanOptions();
@@ -1481,25 +1539,8 @@
     function onGalleryUkeChange() {
       const galUke = document.getElementById('galleryUkeFilter').value;
       selectedUkeFilter = galUke;
+      selectedPenempatanFilter = '';
       document.getElementById('filterUkeSelect').value = galUke;
-      populatePenempatanOptions();
-      populateGalleryPenempatanOptions();
-      applyFilters();
-    }
-
-    function toggleUkeInfographicCard(ukeName) {
-      selectedUkeFilter = selectedUkeFilter === ukeName ? '' : ukeName;
-      document.getElementById('filterUkeSelect').value = selectedUkeFilter;
-      document.getElementById('galleryUkeFilter').value = selectedUkeFilter;
-      populatePenempatanOptions();
-      populateGalleryPenempatanOptions();
-      applyFilters();
-    }
-
-    function clearUkeCardSelection() {
-      selectedUkeFilter = '';
-      document.getElementById('filterUkeSelect').value = '';
-      document.getElementById('galleryUkeFilter').value = '';
       populatePenempatanOptions();
       populateGalleryPenempatanOptions();
       applyFilters();
@@ -1512,13 +1553,15 @@
 
     function resetTableFilters() {
       selectedUkeFilter = '';
+      selectedPenempatanFilter = '';
       document.getElementById('searchInput').value = '';
       document.getElementById('filterUkeSelect').value = '';
-      document.getElementById('filterPenempatanSelect').value = '';
       document.getElementById('filterStatusSelect').value = 'all';
       document.getElementById('galleryUkeFilter').value = '';
       populatePenempatanOptions();
       populateGalleryPenempatanOptions();
+      document.getElementById('filterPenempatanSelect').value = '';
+      document.getElementById('galleryPenempatanFilter').value = '';
       applyFilters();
     }
 
@@ -1529,6 +1572,7 @@
 
     function resetGalleryFilters() {
       selectedUkeFilter = '';
+      selectedPenempatanFilter = '';
       document.getElementById('galleryUkeFilter').value = '';
       document.getElementById('filterUkeSelect').value = '';
       document.getElementById('galleryTypeFilter').value = 'all';
@@ -1536,6 +1580,7 @@
       populatePenempatanOptions();
       populateGalleryPenempatanOptions();
       document.getElementById('galleryPenempatanFilter').value = '';
+      document.getElementById('filterPenempatanSelect').value = '';
       applyFilters();
     }
 
@@ -1546,8 +1591,10 @@
       const statusVal = document.getElementById('filterStatusSelect').value;
 
       selectedUkeFilter = ukeVal;
+      selectedPenempatanFilter = unitVal;
+
       document.getElementById('clearSearchBtn').classList.toggle('hidden', q.length === 0);
-      document.getElementById('showAllUkeBtn').classList.toggle('hidden', !selectedUkeFilter);
+      document.getElementById('resetScopeFilterBtn').classList.toggle('hidden', !selectedUkeFilter && !selectedPenempatanFilter);
 
       filteredPersonnel = personnelList.filter(p => {
         if (ukeVal && p.uke_1 !== ukeVal) return false;
@@ -1557,8 +1604,9 @@
         const hasKontrak = hasKontrakDocument(p);
         const hasAny = hasSk || hasKontrak;
 
+        if (statusVal === 'has_sk' && !hasSk) return false;
+        if (statusVal === 'no_sk' && hasSk) return false;
         if (statusVal === 'complete' && !(hasSk && hasKontrak)) return false;
-        if (statusVal === 'partial' && !(hasAny && !(hasSk && hasKontrak))) return false;
         if (statusVal === 'no_doc' && hasAny) return false;
 
         if (q) {
@@ -1577,208 +1625,125 @@
         return true;
       });
 
-      updateKpis();
-      renderUkeInfographicCards();
-      renderCharts();
+      renderCompactInfographics();
       renderMasterTable();
       renderGalleryView();
     }
 
     // =========================================================================
-    // 6. KPI CARDS & INTERACTIVE UKE I INFOGRAPHIC COMPARISON CARDS
+    // 6. INFOGRAFIS RINGKAS (TOTAL TENAGA TEKNIS, RUPIAH BLN/THN, DOKUMEN UKE 1 & PENEMPATAN)
     // =========================================================================
-    function updateKpis() {
+    function renderCompactInfographics() {
       let hasDocAll = 0;
-      let totalFilesAll = 0;
+      let totalSkAll = 0;
+      let totalKontrakAll = 0;
+
       personnelList.forEach(p => {
         const s = hasSkDocument(p);
         const k = hasKontrakDocument(p);
-        if (s) totalFilesAll++;
-        if (k) totalFilesAll++;
+        if (s) totalSkAll++;
+        if (k) totalKontrakAll++;
         if (s || k) hasDocAll++;
       });
 
+      const totalFilesAll = totalSkAll + totalKontrakAll;
       document.getElementById('headerGalleryBadge').textContent = `${totalFilesAll} Berkas`;
       document.getElementById('headerHasDocCount').textContent = hasDocAll;
       document.getElementById('headerNoDocCount').textContent = Math.max(0, personnelList.length - hasDocAll);
 
+      // Filtered Scope KPIs (Total Personil & Nilai Rupiah Bulan/Tahun)
       const ds = filteredPersonnel;
       const count = ds.length;
       const monthlyHonor = ds.reduce((acc, p) => acc + (Number(p.honor) || 0), 0);
       const annualHonor = monthlyHonor * 12;
-      const avgHonor = count > 0 ? Math.round(monthlyHonor / count) : 0;
-
-      const uniqueUkes = new Set(ds.map(p => p.uke_1).filter(Boolean)).size;
-      const uniqueUnits = new Set(ds.map(p => p.penempatan).filter(Boolean)).size;
-
-      let minHonor = Infinity;
-      let maxHonor = 0;
-      let skCount = 0;
-      let kontrakCount = 0;
-      let hasDocCount = 0;
-
-      ds.forEach(p => {
-        const h = Number(p.honor) || 0;
-        if (h < minHonor) minHonor = h;
-        if (h > maxHonor) maxHonor = h;
-        const s = hasSkDocument(p);
-        const k = hasKontrakDocument(p);
-        if (s) skCount++;
-        if (k) kontrakCount++;
-        if (s || k) hasDocCount++;
-      });
-
-      if (count === 0) minHonor = 0;
-
-      const skPct = count > 0 ? ((skCount / count) * 100).toFixed(1).replace('.', ',') : '0,0';
-      const skPctRaw = count > 0 ? (skCount / count) * 100 : 0;
-      const kontrakPct = count > 0 ? ((kontrakCount / count) * 100).toFixed(1).replace('.', ',') : '0,0';
-      const kontrakPctRaw = count > 0 ? (kontrakCount / count) * 100 : 0;
 
       document.getElementById('kpiTotalPersonil').textContent = count;
-      document.getElementById('kpiScopeSummary').textContent = `${uniqueUkes} UKE I • ${uniqueUnits} Unit Penempatan`;
-      document.getElementById('kpiHasDocPersons').textContent = hasDocCount;
-
       document.getElementById('kpiMonthlyHonor').textContent = formatRupiah(monthlyHonor);
       document.getElementById('kpiAnnualHonor').textContent = formatRupiah(annualHonor);
-      document.getElementById('kpiAvgHonor').textContent = formatRupiah(avgHonor);
-      document.getElementById('kpiHonorRange').textContent =
-        `Rp ${(minHonor / 1000000).toFixed(1).replace('.', ',')} Jt – Rp ${(maxHonor / 1000000).toFixed(1).replace('.', ',')} Jt`;
+      document.getElementById('kpiTotalUploadedSummary').textContent = `${totalSkAll} SK • ${totalKontrakAll} Kontrak`;
 
-      document.getElementById('kpiTotalDocsBadge').textContent = `${skCount + kontrakCount} Berkas`;
-      document.getElementById('kpiSkHeadline').textContent = `${skCount}/${count} — ${skPct}%`;
-      document.getElementById('kpiSkProgressBar').style.width = `${skPctRaw}%`;
-      document.getElementById('kpiKontrakHeadline').textContent = `${kontrakCount}/${count} — ${kontrakPct}%`;
-      document.getElementById('kpiKontrakProgressBar').style.width = `${kontrakPctRaw}%`;
-    }
-
-    function renderUkeInfographicCards() {
-      const container = document.getElementById('ukeInfographicCards');
-      const totalAll = personnelList.length || 1;
-
+      // Mini UKE I count breakdown in Card 1
       const ukeOrder = [
         'Sekretariat Jenderal',
         'Direktorat Jenderal Perlindungan dan Jaminan Sosial'
       ];
       const allUkes = [...new Set([...ukeOrder, ...personnelList.map(p => p.uke_1).filter(Boolean)])];
 
-      container.innerHTML = allUkes.map(ukeName => {
+      const miniContainer = document.getElementById('kpiUkeBreakdownMini');
+      miniContainer.innerHTML = allUkes.map(ukeName => {
         const members = personnelList.filter(p => p.uke_1 === ukeName);
-        if (members.length === 0) return '';
+        if (!members.length) return '';
+        const shortUke = ukeName.includes('Perlindungan dan Jaminan Sosial') ? 'Ditjen Linjamsos' : ukeName;
+        const isActive = selectedUkeFilter === ukeName && !selectedPenempatanFilter;
+        return `
+          <div onclick="filterByUnitFromInfographic('${escapeHtml(ukeName)}', '')" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg cursor-pointer transition ${isActive ? 'bg-amber-400/20 border border-amber-400/45' : 'exec-surface hover:border-amber-400/40'}">
+            <span class="font-semibold text-[var(--text-muted)] truncate pr-2">${escapeHtml(shortUke)}</span>
+            <span class="font-mono-num font-extrabold text-amber-600 dark:text-amber-300 flex-shrink-0">${members.length} Org</span>
+          </div>
+        `;
+      }).join('');
 
-        const count = members.length;
-        const pctShare = ((count / totalAll) * 100).toFixed(1).replace('.', ',');
-        const totalHonor = members.reduce((s, m) => s + (Number(m.honor) || 0), 0);
-        const avgHonor = Math.round(totalHonor / count);
+      // Card 3: Rekapitulasi Dokumen Terupload per UKE I & Penempatan
+      const docSummaryContainer = document.getElementById('ukePenempatanDocSummaryList');
+      docSummaryContainer.innerHTML = allUkes.map(ukeName => {
+        const members = personnelList.filter(p => p.uke_1 === ukeName);
+        if (!members.length) return '';
 
-        let skCount = 0;
-        let kontrakCount = 0;
-        let hasDocPersons = 0;
-        const satkerCounts = {};
+        const ukeSk = members.filter(hasSkDocument).length;
+        const ukeKontrak = members.filter(hasKontrakDocument).length;
+        const shortUke = ukeName.includes('Perlindungan dan Jaminan Sosial') ? 'Ditjen Perlindungan & Jaminan Sosial' : ukeName;
 
+        // Group by Penempatan inside this UKE I
+        const unitGroups = {};
         members.forEach(m => {
-          const s = hasSkDocument(m);
-          const k = hasKontrakDocument(m);
-          if (s) skCount++;
-          if (k) kontrakCount++;
-          if (s || k) hasDocPersons++;
-          const sName = shortenUnit(m.penempatan);
-          satkerCounts[sName] = (satkerCounts[sName] || 0) + 1;
+          const u = m.penempatan || 'Lainnya';
+          if (!unitGroups[u]) unitGroups[u] = { total: 0, sk: 0, kontrak: 0 };
+          unitGroups[u].total++;
+          if (hasSkDocument(m)) unitGroups[u].sk++;
+          if (hasKontrakDocument(m)) unitGroups[u].kontrak++;
         });
 
-        const noDocPersons = count - hasDocPersons;
-        const skPct = ((skCount / count) * 100).toFixed(1);
-        const kontrakPct = ((kontrakCount / count) * 100).toFixed(1);
+        const unitRowsHtml = Object.entries(unitGroups).map(([unitName, st]) => {
+          const isUnitSelected = selectedPenempatanFilter === unitName;
+          const skPct = Math.round((st.sk / st.total) * 100);
+          return `
+            <div class="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-[11px] transition ${isUnitSelected ? 'bg-amber-400/20 border border-amber-400/50' : 'bg-black/5 dark:bg-[#0B132B]/70 hover:bg-amber-500/10'}">
+              <button type="button" onclick="filterByUnitFromInfographic('${escapeHtml(ukeName)}', '${escapeHtml(unitName)}')" class="text-left flex-1 min-w-0 cursor-pointer">
+                <span class="font-bold text-[var(--text-main)] truncate block" title="${escapeHtml(unitName)}">${escapeHtml(shortenUnit(unitName))}</span>
+              </button>
 
-        const isSelected = selectedUkeFilter === ukeName;
-        const isDimmed = selectedUkeFilter && !isSelected;
-
-        const satkerBadges = Object.entries(satkerCounts)
-          .sort((a, b) => b[1] - a[1])
-          .map(([sName, sCount]) => `
-            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold exec-surface">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-              <span class="text-[var(--text-main)]">${escapeHtml(sName)}</span>
-              <span class="font-mono-num text-amber-600 dark:text-amber-300 font-bold">(${sCount})</span>
-            </span>
-          `).join('');
+              <div class="flex items-center gap-2 flex-shrink-0 font-mono-num">
+                <span class="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-bold" title="SK Terupload">
+                  SK: ${st.sk}/${st.total} (${skPct}%)
+                </span>
+                <span class="px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-600 dark:text-sky-300 font-bold" title="Kontrak Terupload">
+                  Kontrak: ${st.kontrak}/${st.total}
+                </span>
+                <button
+                  type="button"
+                  onclick="openBulkSkModal('${escapeHtml(ukeName)}', '${escapeHtml(unitName)}')"
+                  title="Upload SK Kolektif untuk ${escapeHtml(shortenUnit(unitName))}"
+                  class="px-2 py-0.5 rounded bg-amber-400 text-[#0B132B] font-extrabold hover:brightness-105 cursor-pointer"
+                >
+                  + SK Kolektif
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
 
         return `
-          <div
-            onclick="toggleUkeInfographicCard('${escapeHtml(ukeName)}')"
-            class="exec-card exec-card-hover rounded-2xl p-5 cursor-pointer transition-all ${
-              isSelected
-                ? 'ring-2 ring-amber-400 border-amber-400 bg-amber-500/5'
-                : isDimmed
-                ? 'opacity-65 hover:opacity-100'
-                : ''
-            }"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-400/35">
-                    UNIT KERJA ESELON I
-                  </span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-400/30">
-                    ${hasDocPersons} Ada Berkas
-                  </span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-300 border border-rose-400/30">
-                    ${noDocPersons} Belum
-                  </span>
-                </div>
-                <h4 class="text-base sm:text-lg font-extrabold text-[var(--text-main)] mt-1.5">
-                  ${escapeHtml(ukeName)}
-                </h4>
-              </div>
-
-              <div class="text-right flex-shrink-0">
-                <span class="inline-block px-3 py-1.5 rounded-xl font-mono-num text-xs sm:text-sm font-extrabold bg-amber-400/15 text-amber-600 dark:text-amber-300 border border-amber-400/40">
-                  ${count} Personil (${pctShare}%)
-                </span>
-              </div>
+          <div class="exec-surface rounded-xl p-2.5 space-y-1.5">
+            <div class="flex items-center justify-between text-xs px-1">
+              <button type="button" onclick="filterByUnitFromInfographic('${escapeHtml(ukeName)}', '')" class="font-extrabold text-amber-600 dark:text-amber-300 hover:underline text-left cursor-pointer">
+                ${escapeHtml(shortUke)} (${members.length} Org)
+              </button>
+              <span class="font-mono-num text-[11px] font-bold text-[var(--text-muted)]">
+                SK: ${ukeSk}/${members.length} &bull; Kontrak: ${ukeKontrak}/${members.length}
+              </span>
             </div>
-
-            <div class="mt-4 grid grid-cols-2 gap-3">
-              <div class="exec-surface rounded-xl p-3">
-                <p class="text-[11px] font-medium text-[var(--text-soft)]">Pagu Honorarium Bulanan</p>
-                <p class="text-sm sm:text-base font-extrabold font-mono-num text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  ${formatRupiah(totalHonor)}/bln
-                </p>
-              </div>
-              <div class="exec-surface rounded-xl p-3">
-                <p class="text-[11px] font-medium text-[var(--text-soft)]">Rata-Rata Honor</p>
-                <p class="text-sm sm:text-base font-extrabold font-mono-num text-[var(--text-main)] mt-0.5">
-                  ${formatRupiah(avgHonor)}
-                </p>
-              </div>
-            </div>
-
-            <div class="mt-3.5">
-              <p class="text-[11px] font-semibold text-[var(--text-soft)] mb-1.5">Satker Penempatan:</p>
-              <div class="flex flex-wrap gap-2">${satkerBadges}</div>
-            </div>
-
-            <div class="mt-4 pt-3.5 border-t border-[var(--border-subtle)] grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <div class="flex justify-between font-bold mb-1">
-                  <span class="text-[var(--text-muted)]">Dokumen SK</span>
-                  <span class="font-mono-num text-emerald-600 dark:text-emerald-400">${skCount}/${count} (${skPct.replace('.', ',')}%)</span>
-                </div>
-                <div class="w-full h-2 rounded-full bg-slate-300/35 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full rounded-full bg-emerald-500 transition-all duration-500" style="width: ${skPct}%"></div>
-                </div>
-              </div>
-
-              <div>
-                <div class="flex justify-between font-bold mb-1">
-                  <span class="text-[var(--text-muted)]">Dokumen Kontrak</span>
-                  <span class="font-mono-num text-sky-600 dark:text-sky-400">${kontrakCount}/${count} (${kontrakPct.replace('.', ',')}%)</span>
-                </div>
-                <div class="w-full h-2 rounded-full bg-slate-300/35 dark:bg-slate-800 overflow-hidden">
-                  <div class="h-full rounded-full bg-sky-500 transition-all duration-500" style="width: ${kontrakPct}%"></div>
-                </div>
-              </div>
+            <div class="space-y-1">
+              ${unitRowsHtml}
             </div>
           </div>
         `;
@@ -1788,175 +1753,55 @@
     }
 
     // =========================================================================
-    // 7. THREE CHART.JS VISUAL ANALYTICS CARDS
+    // 7. TAB 1: RENDER TABEL DAFTAR TENAGA TEKNIS (WITH CHECKBOX MULTI-SELECT)
     // =========================================================================
-    function renderCharts() {
-      const isDark = document.documentElement.classList.contains('dark');
-      const textColor = isDark ? '#cbd5e1' : '#334155';
-      const gridColor = isDark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(15, 23, 42, 0.08)';
-      const ds = filteredPersonnel;
+    function updateSelectionBannerUI() {
+      const banner = document.getElementById('tableSelectionBanner');
+      const countText = document.getElementById('selectedRowsCounterText');
+      const selectAllCb = document.getElementById('selectAllFilteredCheckbox');
 
-      // Chart 1: Sebaran Personil & Total Honor per UKE I
-      const ukeLabels = [...new Set(ds.map(p => p.uke_1).filter(Boolean))];
-      const shortUkeLabels = ukeLabels.map(u =>
-        u.includes('Perlindungan dan Jaminan Sosial') ? 'Ditjen Linjamsos' : u
-      );
-      const personCounts = ukeLabels.map(u => ds.filter(p => p.uke_1 === u).length);
-      const honorJuta = ukeLabels.map(u =>
-        Math.round(ds.filter(p => p.uke_1 === u).reduce((s, p) => s + (Number(p.honor) || 0), 0) / 1000000)
-      );
+      const count = selectedTableRowNos.size;
+      if (count > 0) {
+        banner.classList.remove('hidden');
+        countText.textContent = `${count} personil dipilih pada tabel`;
+      } else {
+        banner.classList.add('hidden');
+      }
 
-      if (chartUkeHonorInstance) chartUkeHonorInstance.destroy();
-      chartUkeHonorInstance = new Chart(document.getElementById('chartUkeHonor').getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: shortUkeLabels,
-          datasets: [
-            {
-              label: 'Jumlah Personil',
-              data: personCounts,
-              backgroundColor: '#D4AF37',
-              borderRadius: 6,
-              yAxisID: 'y'
-            },
-            {
-              label: 'Total Honor (Juta Rp/Bln)',
-              data: honorJuta,
-              backgroundColor: '#10b981',
-              borderRadius: 6,
-              yAxisID: 'y1'
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { color: textColor, font: { size: 10.5, family: '"Plus Jakarta Sans"' }, boxWidth: 11 }
-            }
-          },
-          scales: {
-            x: { ticks: { color: textColor, font: { weight: '600', size: 11 } }, grid: { display: false } },
-            y: {
-              type: 'linear',
-              position: 'left',
-              beginAtZero: true,
-              ticks: { color: textColor, precision: 0 },
-              grid: { color: gridColor }
-            },
-            y1: {
-              type: 'linear',
-              position: 'right',
-              beginAtZero: true,
-              ticks: { color: '#10b981' },
-              grid: { drawOnChartArea: false }
-            }
-          }
-        }
-      });
-
-      // Chart 2: Distribusi Personil per Unit Penempatan (Satker)
-      const unitMap = {};
-      ds.forEach(p => {
-        const u = shortenUnit(p.penempatan);
-        if (!unitMap[u]) unitMap[u] = { complete: 0, partial: 0, noDoc: 0, total: 0 };
-        const s = hasSkDocument(p);
-        const k = hasKontrakDocument(p);
-        if (s && k) unitMap[u].complete++;
-        else if (s || k) unitMap[u].partial++;
-        else unitMap[u].noDoc++;
-        unitMap[u].total++;
-      });
-      const sortedUnits = Object.entries(unitMap).sort((a, b) => b[1].total - a[1].total);
-
-      if (chartUnitStatusInstance) chartUnitStatusInstance.destroy();
-      chartUnitStatusInstance = new Chart(document.getElementById('chartUnitStatus').getContext('2d'), {
-        type: 'bar',
-        data: {
-          labels: sortedUnits.map(u => u[0]),
-          datasets: [
-            {
-              label: 'Lengkap (SK & Kontrak)',
-              data: sortedUnits.map(u => u[1].complete),
-              backgroundColor: '#10b981',
-              borderRadius: 5
-            },
-            {
-              label: 'Parsial (SK / Kontrak)',
-              data: sortedUnits.map(u => u[1].partial),
-              backgroundColor: '#f59e0b',
-              borderRadius: 5
-            },
-            {
-              label: 'Belum Ada Dokumen',
-              data: sortedUnits.map(u => u[1].noDoc),
-              backgroundColor: '#f43f5e',
-              borderRadius: 5
-            }
-          ]
-        },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'bottom',
-              labels: { color: textColor, font: { size: 10.5, family: '"Plus Jakarta Sans"' }, boxWidth: 11 }
-            }
-          },
-          scales: {
-            x: { stacked: true, beginAtZero: true, ticks: { color: textColor, precision: 0 }, grid: { color: gridColor } },
-            y: { stacked: true, ticks: { color: textColor, font: { weight: '600', size: 11 } }, grid: { display: false } }
-          }
-        }
-      });
-
-      // Chart 3: Komposisi Kualifikasi Pendidikan
-      const eduCounts = {};
-      ds.forEach(p => {
-        const j = p.jenjang || 'Belum Tercatat';
-        eduCounts[j] = (eduCounts[j] || 0) + 1;
-      });
-      const sortedEdu = Object.entries(eduCounts).sort((a, b) => b[1] - a[1]);
-
-      if (chartEduDoughnutInstance) chartEduDoughnutInstance.destroy();
-      chartEduDoughnutInstance = new Chart(document.getElementById('chartEducationDoughnut').getContext('2d'), {
-        type: 'doughnut',
-        data: {
-          labels: sortedEdu.map(e => e[0]),
-          datasets: [{
-            data: sortedEdu.map(e => e[1]),
-            backgroundColor: ['#D4AF37', '#38bdf8', '#10b981', '#a855f7', '#f97316', '#f43f5e'],
-            borderColor: isDark ? '#111C3A' : '#ffffff',
-            borderWidth: 2
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '62%',
-          plugins: {
-            legend: {
-              position: 'right',
-              labels: { color: textColor, font: { size: 11, family: '"Plus Jakarta Sans"' }, boxWidth: 11 }
-            }
-          }
-        }
-      });
+      if (selectAllCb && filteredPersonnel.length > 0) {
+        const allVisibleSelected = filteredPersonnel.every(p => selectedTableRowNos.has(p.no));
+        selectAllCb.checked = allVisibleSelected;
+      } else if (selectAllCb) {
+        selectAllCb.checked = false;
+      }
     }
 
-    // =========================================================================
-    // 8. TAB 1: RENDER TABEL DAFTAR & MONITORING TENAGA TEKNIS
-    // =========================================================================
+    function toggleRowCheckbox(personNo, checked) {
+      if (checked) selectedTableRowNos.add(personNo);
+      else selectedTableRowNos.delete(personNo);
+      updateSelectionBannerUI();
+    }
+
+    function toggleSelectAllVisibleRows(checked) {
+      filteredPersonnel.forEach(p => {
+        if (checked) selectedTableRowNos.add(p.no);
+        else selectedTableRowNos.delete(p.no);
+      });
+      renderMasterTable();
+    }
+
+    function clearTableRowSelection() {
+      selectedTableRowNos.clear();
+      renderMasterTable();
+    }
+
     function renderMasterTable() {
       const tbody = document.getElementById('masterTableBody');
       const emptyEl = document.getElementById('masterTableEmpty');
       const counterEl = document.getElementById('masterTableCounter');
 
-      counterEl.textContent = `Menampilkan ${filteredPersonnel.length} dari ${personnelList.length} personil tenaga teknis • Klik tombol Upload / Lihat untuk mengelola dokumen Google Drive`;
+      counterEl.textContent = `Menampilkan ${filteredPersonnel.length} dari ${personnelList.length} personil tenaga teknis • Centang beberapa baris atau klik "Upload SK Kolektif" untuk unggah SK gelondongan`;
+      updateSelectionBannerUI();
 
       if (filteredPersonnel.length === 0) {
         tbody.innerHTML = '';
@@ -1969,6 +1814,7 @@
         const hasSk = hasSkDocument(p);
         const hasKontrak = hasKontrakDocument(p);
         const hasAny = hasSk || hasKontrak;
+        const isChecked = selectedTableRowNos.has(p.no);
 
         const isSetjen = p.uke_1 === 'Sekretariat Jenderal';
         const ukePillClass = isSetjen
@@ -2009,7 +1855,7 @@
         }
 
         const skBtnHtml = hasSk
-          ? `<button onclick="openEmployeeDocumentViewer(${p.no}, 'sk')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-300 border border-emerald-400/40 transition cursor-pointer" title="Pratinjau Dokumen SK">
+          ? `<button onclick="openEmployeeDocumentViewer(${p.no}, 'sk')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-600 dark:text-emerald-300 border border-emerald-400/40 transition cursor-pointer" title="${escapeHtml(p.skNumber || 'Pratinjau Dokumen SK')}">
                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat SK
              </button>`
           : `<button onclick="openUploadDocModal(${p.no}, 'SK')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold exec-surface text-[var(--text-soft)] hover:text-amber-400 hover:border-amber-400/40 transition cursor-pointer">
@@ -2017,7 +1863,7 @@
              </button>`;
 
         const kontrakBtnHtml = hasKontrak
-          ? `<button onclick="openEmployeeDocumentViewer(${p.no}, 'kontrak')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-600 dark:text-sky-300 border border-sky-400/40 transition cursor-pointer" title="Pratinjau Dokumen Kontrak">
+          ? `<button onclick="openEmployeeDocumentViewer(${p.no}, 'kontrak')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-600 dark:text-sky-300 border border-sky-400/40 transition cursor-pointer" title="${escapeHtml(p.kontrakNumber || 'Pratinjau Dokumen Kontrak')}">
                <i data-lucide="eye" class="w-3.5 h-3.5"></i> Lihat Kontrak
              </button>`
           : `<button onclick="openUploadDocModal(${p.no}, 'KONTRAK')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold exec-surface text-[var(--text-soft)] hover:text-amber-400 hover:border-amber-400/40 transition cursor-pointer">
@@ -2027,8 +1873,12 @@
         const highlightClass = newlyHighlightedNo === p.no ? 'row-highlight-new' : '';
 
         return `
-          <tr id="person-row-${p.no}" class="hover:bg-amber-500/5 transition-colors ${highlightClass}">
-            <td class="py-3.5 px-3.5 text-center font-mono-num font-bold text-[var(--text-soft)]">${p.no}</td>
+          <tr id="person-row-${p.no}" class="hover:bg-amber-500/5 transition-colors ${highlightClass} ${isChecked ? 'bg-amber-500/10' : ''}">
+            <td class="py-3.5 px-3 text-center">
+              <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleRowCheckbox(${p.no}, this.checked)" class="w-4 h-4 accent-amber-400 rounded cursor-pointer" />
+            </td>
+
+            <td class="py-3.5 px-3 text-center font-mono-num font-bold text-[var(--text-soft)]">${p.no}</td>
 
             <td class="py-3.5 px-3.5">
               <p class="font-bold text-[var(--text-main)] leading-snug">${escapeHtml(p.nama)}</p>
@@ -2040,6 +1890,7 @@
                   ${escapeHtml(p.pendidikan || '-')}
                 </span>
               </div>
+              ${p.skNumber ? `<p class="text-[10px] font-mono-num text-emerald-600 dark:text-emerald-400 mt-1">SK: ${escapeHtml(p.skNumber)}</p>` : ''}
             </td>
 
             <td class="py-3.5 px-3.5">
@@ -2082,7 +1933,313 @@
     }
 
     // =========================================================================
-    // 9. TAB 2: GALERI ARSIP DOKUMEN TERUNGGAH (WITH CASCADING PENEMPATAN FILTER)
+    // 8. MODAL UPLOAD SK KOLEKTIF / GELONDONGAN PER PENEMPATAN
+    // =========================================================================
+    function openBulkSkModal(preUke = '', prePenempatan = '') {
+      const penempatanSelect = document.getElementById('bulkPenempatanSelect');
+      const allUnits = [...new Set(personnelList.map(p => p.penempatan).filter(Boolean))];
+
+      penempatanSelect.innerHTML =
+        `<option value="">Semua Unit Penempatan (${personnelList.length} Personil)</option>` +
+        allUnits.map(u => {
+          const cnt = personnelList.filter(p => p.penempatan === u).length;
+          return `<option value="${escapeHtml(u)}">${escapeHtml(u)} (${cnt} Org)</option>`;
+        }).join('');
+
+      const targetUnit = prePenempatan || selectedPenempatanFilter || '';
+      if (targetUnit && allUnits.includes(targetUnit)) {
+        penempatanSelect.value = targetUnit;
+      } else {
+        penempatanSelect.value = '';
+      }
+
+      bulkSkState.selectedNos.clear();
+
+      // Default auto-select people in chosen Penempatan who don't have SK yet (or all if all already have SK)
+      const scoped = getBulkScopedPersonnel();
+      const withoutSk = scoped.filter(p => !hasSkDocument(p));
+      const initialPick = withoutSk.length > 0 ? withoutSk : scoped;
+      if (targetUnit) {
+        initialPick.forEach(p => bulkSkState.selectedNos.add(p.no));
+      }
+
+      document.getElementById('bulkSkNumberInput').value = '';
+      document.getElementById('bulkChecklistSearch').value = '';
+      document.getElementById('bulkLocalFileInput').value = '';
+      document.getElementById('bulkDriveUrlInput').value = '';
+      document.getElementById('bulkProgressBox').classList.add('hidden');
+      switchBulkUploadMode('file');
+      renderBulkChecklist();
+
+      openModal('bulkSkModal');
+      lucide.createIcons();
+    }
+
+    function openBulkSkFromTableSelection() {
+      openBulkSkModal('', '');
+      bulkSkState.selectedNos = new Set(selectedTableRowNos);
+      renderBulkChecklist();
+    }
+
+    function getBulkScopedPersonnel() {
+      const unitFilter = document.getElementById('bulkPenempatanSelect').value;
+      const q = document.getElementById('bulkChecklistSearch').value.trim().toLowerCase();
+      return personnelList.filter(p => {
+        if (unitFilter && p.penempatan !== unitFilter) return false;
+        if (q) {
+          const hay = `${p.no} ${p.nama} ${p.penempatan} ${p.profesi_keahlian}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+    }
+
+    function onBulkPenempatanFilterChange() {
+      bulkSkState.selectedNos.clear();
+      const scoped = getBulkScopedPersonnel();
+      const withoutSk = scoped.filter(p => !hasSkDocument(p));
+      const toPick = withoutSk.length > 0 ? withoutSk : scoped;
+      toPick.forEach(p => bulkSkState.selectedNos.add(p.no));
+      renderBulkChecklist();
+    }
+
+    function bulkSelectPreset(mode) {
+      const scoped = getBulkScopedPersonnel();
+      if (mode === 'all_visible') {
+        scoped.forEach(p => bulkSkState.selectedNos.add(p.no));
+      } else if (mode === 'no_sk_visible') {
+        scoped.forEach(p => {
+          if (!hasSkDocument(p)) bulkSkState.selectedNos.add(p.no);
+          else bulkSkState.selectedNos.delete(p.no);
+        });
+      } else {
+        bulkSkState.selectedNos.clear();
+      }
+      renderBulkChecklist();
+    }
+
+    function toggleBulkPersonCheckbox(personNo, checked) {
+      if (checked) bulkSkState.selectedNos.add(personNo);
+      else bulkSkState.selectedNos.delete(personNo);
+      document.getElementById('bulkSelectedCountBadge').textContent = bulkSkState.selectedNos.size;
+    }
+
+    function renderBulkChecklist() {
+      const container = document.getElementById('bulkChecklistContainer');
+      const scoped = getBulkScopedPersonnel();
+      document.getElementById('bulkSelectedCountBadge').textContent = bulkSkState.selectedNos.size;
+
+      if (scoped.length === 0) {
+        container.innerHTML = `<div class="p-4 text-center text-xs text-[var(--text-soft)]">Tidak ada personil pada filter penempatan ini.</div>`;
+        return;
+      }
+
+      container.innerHTML = scoped.map(p => {
+        const checked = bulkSkState.selectedNos.has(p.no);
+        const alreadySk = hasSkDocument(p);
+        return `
+          <label class="flex items-center justify-between gap-3 px-3.5 py-2.5 hover:bg-amber-500/10 cursor-pointer transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <input
+                type="checkbox"
+                ${checked ? 'checked' : ''}
+                onchange="toggleBulkPersonCheckbox(${p.no}, this.checked)"
+                class="w-4 h-4 accent-amber-400 rounded cursor-pointer flex-shrink-0"
+              />
+              <span class="font-mono-num text-[11px] font-bold text-[var(--text-soft)] w-7 flex-shrink-0">#${String(p.no).padStart(2, '0')}</span>
+              <div class="min-w-0">
+                <p class="text-xs font-bold text-[var(--text-main)] truncate">${escapeHtml(p.nama)}</p>
+                <p class="text-[10px] text-[var(--text-soft)] truncate">${escapeHtml(shortenUnit(p.penempatan))} &bull; ${escapeHtml(p.profesi_keahlian)}</p>
+              </div>
+            </div>
+
+            <span class="flex-shrink-0 px-2 py-0.5 rounded text-[10px] font-bold ${alreadySk ? 'bg-emerald-500/15 text-emerald-500 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-500 dark:text-rose-300'}">
+              ${alreadySk ? (p.skNumber || 'Sudah Ada SK') : 'Belum Ada SK'}
+            </span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function switchBulkUploadMode(mode) {
+      bulkSkState.mode = mode;
+      const fileBtn = document.getElementById('bulkModeFileBtn');
+      const linkBtn = document.getElementById('bulkModeLinkBtn');
+      const panelFile = document.getElementById('bulkPanelFile');
+      const panelLink = document.getElementById('bulkPanelLink');
+
+      if (mode === 'file') {
+        fileBtn.className = 'py-2 px-3 rounded-lg text-xs font-bold bg-amber-400 text-[#0B132B] shadow cursor-pointer transition';
+        linkBtn.className = 'py-2 px-3 rounded-lg text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer transition';
+        panelFile.classList.remove('hidden');
+        panelLink.classList.add('hidden');
+      } else {
+        linkBtn.className = 'py-2 px-3 rounded-lg text-xs font-bold bg-amber-400 text-[#0B132B] shadow cursor-pointer transition';
+        fileBtn.className = 'py-2 px-3 rounded-lg text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text-main)] cursor-pointer transition';
+        panelLink.classList.remove('hidden');
+        panelFile.classList.add('hidden');
+      }
+    }
+
+    async function submitBulkSkUpload() {
+      const selectedNos = Array.from(bulkSkState.selectedNos).sort((a, b) => a - b);
+      const docNumber = document.getElementById('bulkSkNumberInput').value.trim();
+
+      if (selectedNos.length === 0) {
+        showToast('Pilih Minimal 1 Pegawai', 'Silakan centang pegawai penerima SK pada daftar ceklis.', 'error');
+        return;
+      }
+      if (!docNumber) {
+        showToast('Nomor SK Wajib Diisi', 'Masukkan Nomor SK Kolektif yang berlaku untuk pegawai terpilih.', 'error');
+        return;
+      }
+
+      let fileObj = null;
+      let sharedDriveUrl = '';
+
+      if (bulkSkState.mode === 'file') {
+        fileObj = document.getElementById('bulkLocalFileInput').files[0];
+        if (!fileObj) {
+          showToast('Pilih File SK Terlebih Dahulu', 'Unggah 1 file PDF atau gambar SK gelondongan.', 'error');
+          return;
+        }
+      } else {
+        sharedDriveUrl = document.getElementById('bulkDriveUrlInput').value.trim();
+        if (!sharedDriveUrl) {
+          showToast('Link Google Drive Kosong', 'Tempel tautan Google Drive dokumen SK gelondongan.', 'error');
+          return;
+        }
+      }
+
+      const btn = document.getElementById('submitBulkSkBtn');
+      const icon = document.getElementById('submitBulkSkIcon');
+      const label = document.getElementById('submitBulkSkLabel');
+      const progressBox = document.getElementById('bulkProgressBox');
+      const progressText = document.getElementById('bulkProgressText');
+      const progressPct = document.getElementById('bulkProgressPct');
+      const progressBar = document.getElementById('bulkProgressBar');
+
+      btn.disabled = true;
+      btn.classList.add('opacity-75', 'cursor-not-allowed');
+      icon.setAttribute('data-lucide', 'loader-2');
+      icon.classList.add('animate-spin');
+      label.textContent = 'Menyimpan SK Kolektif...';
+      progressBox.classList.remove('hidden');
+      lucide.createIcons();
+
+      try {
+        // Save local IndexedDB backups for all selected recipients immediately
+        if (fileObj) {
+          selectedNos.forEach(no => {
+            saveLocalFileBlobToIndexedDB(no, 'SK', fileObj, docNumber);
+            localFileBackups[`${no}_SK`] = {
+              key: `${no}_SK`,
+              no,
+              jenis: 'SK',
+              fileName: fileObj.name,
+              mimeType: fileObj.type,
+              nomorDokumen: docNumber,
+              blob: fileObj,
+              uploadedAt: getCurrentTimestampWIB()
+            };
+          });
+        }
+
+        let base64Str = '';
+        if (fileObj) {
+          progressText.textContent = 'Mengunggah file SK ke Google Drive...';
+          progressPct.textContent = '10%';
+          progressBar.style.width = '10%';
+          base64Str = await fileToBase64(fileObj);
+        }
+
+        let cloudSuccessCount = 0;
+
+        for (let i = 0; i < selectedNos.length; i++) {
+          const personNo = selectedNos[i];
+          const person = personnelList.find(p => p.no === personNo);
+          if (!person) continue;
+
+          const pct = Math.round(((i + 1) / selectedNos.length) * 100);
+          progressText.textContent = `Mencatat SK ke-${i + 1} dari ${selectedNos.length} (${person.nama})...`;
+          progressPct.textContent = `${pct}%`;
+          progressBar.style.width = `${pct}%`;
+
+          // Update local state immediately
+          person.skNumber = docNumber;
+          if (sharedDriveUrl) {
+            person.skUrl = sharedDriveUrl;
+          }
+
+          try {
+            if (i === 0 && bulkSkState.mode === 'file' && base64Str) {
+              // Upload the physical PDF/image ONCE to Google Drive via Code.gs `uploadDocument`
+              const resJson = await postToGoogleAppsScript({
+                action: 'uploadDocument',
+                personNo: personNo,
+                docType: 'sk',
+                docNumber: docNumber,
+                sourceType: 'file',
+                fileName: fileObj.name,
+                mimeType: fileObj.type,
+                base64Data: base64Str
+              });
+
+              // Extract the newly created Google Drive previewUrl from Code.gs returned `data`
+              if (resJson && Array.isArray(resJson.data)) {
+                const updatedRec = resJson.data.find(r => Number(r.no) === personNo);
+                if (updatedRec && updatedRec.sk && updatedRec.sk.previewUrl) {
+                  sharedDriveUrl = updatedRec.sk.previewUrl;
+                  person.skUrl = sharedDriveUrl;
+                }
+              }
+              cloudSuccessCount++;
+            } else if (sharedDriveUrl) {
+              // Reuse the uploaded Google Drive URL for all remaining selected recipients
+              await postToGoogleAppsScript({
+                action: 'uploadDocument',
+                personNo: personNo,
+                docType: 'sk',
+                docNumber: docNumber,
+                sourceType: 'url',
+                url: sharedDriveUrl
+              });
+              person.skUrl = sharedDriveUrl;
+              cloudSuccessCount++;
+            }
+          } catch (rowErr) {
+            console.warn(`Gagal sync baris #${personNo} ke server, tersimpan di IndexedDB:`, rowErr);
+          }
+        }
+
+        selectedTableRowNos.clear();
+        savePersonnelBackupToIndexedDB();
+        closeBulkSkModal();
+        refreshAllDashboard();
+
+        showToast(
+          `SK Kolektif Berhasil Disimpan (${selectedNos.length} Pegawai)!`,
+          `Nomor SK ${docNumber} telah diterapkan ke ${selectedNos.length} personil (${cloudSuccessCount} tersinkron ke Google Sheets).`,
+          'success'
+        );
+
+        syncFromGoogleSheets(true);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+        icon.setAttribute('data-lucide', 'layers');
+        icon.classList.remove('animate-spin');
+        label.textContent = 'Simpan SK Kolektif';
+        lucide.createIcons();
+      }
+    }
+
+    function closeBulkSkModal() {
+      closeModal('bulkSkModal');
+    }
+
+    // =========================================================================
+    // 9. TAB 2: GALERI ARSIP DOKUMEN TERUNGGAH
     // =========================================================================
     function switchWorkspaceTab(tab) {
       activeWorkspaceTab = tab;
@@ -2174,23 +2331,22 @@
           ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-400/35'
           : 'bg-sky-500/15 text-sky-600 dark:text-sky-300 border-sky-400/35';
 
-        const externalHref = rawUrl ? getOriginalExternalUrl(rawUrl) : '';
-        const sourceLabel = rawUrl ? 'Google Drive / Cloud' : 'Cadangan Lokal IndexedDB';
+        const externalHref = rawUrl && rawUrl.startsWith('http') ? getOriginalExternalUrl(rawUrl) : '';
+        const sourceLabel = externalHref ? 'Google Drive / Cloud' : 'Cadangan Lokal IndexedDB';
 
-        const isImgLocal = localBackup && localBackup.blob && localBackup.mimeType && localBackup.mimeType.startsWith('image/');
-        const previewThumb = isImgLocal
-          ? `<img src="${URL.createObjectURL(localBackup.blob)}" alt="${escapeHtml(person.nama)}" class="w-full h-full object-cover" />`
-          : `<div class="w-full h-full p-4 bg-gradient-to-br from-[#111C3A] to-[#0B132B] flex flex-col justify-between text-left">
-               <div class="pt-7">
-                 <p class="text-[9px] font-bold uppercase tracking-widest text-amber-400">KEMENTERIAN SOSIAL RI</p>
-                 <p class="text-xs font-extrabold text-white mt-0.5">${isSk ? 'SK KEPUTUSAN PENGANGKATAN' : 'SURAT PERJANJIAN KERJA (SPK KONTRAK)'}</p>
-                 <p class="text-[11px] font-mono-num text-amber-300 mt-1">${escapeHtml(docNumber)}</p>
-               </div>
-               <div class="flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800 pt-2">
-                 <span class="text-emerald-400 font-semibold">${sourceLabel}</span>
-                 <span>TA 2026</span>
-               </div>
-             </div>`;
+        const previewThumb = `
+          <div class="w-full h-full p-4 bg-gradient-to-br from-[#111C3A] to-[#0B132B] flex flex-col justify-between text-left">
+            <div class="pt-7">
+              <p class="text-[9px] font-bold uppercase tracking-widest text-amber-400">KEMENTERIAN SOSIAL RI</p>
+              <p class="text-xs font-extrabold text-white mt-0.5">${isSk ? 'SK KEPUTUSAN PENGANGKATAN' : 'SURAT PERJANJIAN KERJA (SPK KONTRAK)'}</p>
+              <p class="text-[11px] font-mono-num text-amber-300 mt-1">${escapeHtml(docNumber)}</p>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-slate-400 border-t border-slate-800 pt-2">
+              <span class="text-emerald-400 font-semibold">${sourceLabel}</span>
+              <span>TA 2026</span>
+            </div>
+          </div>
+        `;
 
         return `
           <div class="exec-card exec-card-hover rounded-2xl overflow-hidden flex flex-col">
@@ -2245,7 +2401,7 @@
                 ${externalHref ? `
                   <a href="${escapeHtml(externalHref)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-1 py-2 px-3 rounded-xl text-xs font-bold exec-surface hover:border-amber-400/50 text-[var(--text-main)] transition">
                     <i data-lucide="external-link" class="w-3.5 h-3.5 text-amber-400"></i>
-                    <span>Buka URL Drive</span>
+                    <span>Drive</span>
                   </a>
                 ` : ''}
               </div>
@@ -2258,7 +2414,7 @@
     }
 
     // =========================================================================
-    // 10. DOCUMENT VIEWER MODAL (GOOGLE DRIVE /PREVIEW & LOCAL BLOB + ZOOM)
+    // 10. DOCUMENT VIEWER MODAL
     // =========================================================================
     function openEmployeeDocumentViewer(personNo, docType) {
       const person = personnelList.find(p => p.no === personNo);
@@ -2268,8 +2424,8 @@
       const rawUrl = isSk ? person.skUrl : person.kontrakUrl;
       const localBackup = localFileBackups[`${person.no}_${isSk ? 'SK' : 'KONTRAK'}`];
 
-      if (!rawUrl && !localBackup) {
-        showToast('Dokumen Belum Tersedia', 'Silakan unggah dokumen SK atau Kontrak terlebih dahulu.', 'info');
+      if ((!rawUrl || !rawUrl.startsWith('http')) && !localBackup) {
+        showToast('Berkas Fisik Belum Diunggah', 'Nomor berkas tercatat, namun file PDF/link Drive belum tersedia.', 'info');
         return;
       }
 
@@ -2277,7 +2433,7 @@
       viewerState = {
         personNo,
         docType,
-        originalUrl: rawUrl ? getOriginalExternalUrl(rawUrl) : '',
+        originalUrl: (rawUrl && rawUrl.startsWith('http')) ? getOriginalExternalUrl(rawUrl) : '',
         blobUrl: null,
         jsPdfDoc: null,
         fileName: (localBackup && localBackup.fileName) || `${isSk ? 'SK' : 'Kontrak'}_${person.nama}.pdf`,
@@ -2291,7 +2447,7 @@
         : 'px-2.5 py-1 rounded-lg text-xs font-extrabold uppercase tracking-wider bg-sky-400 text-[#0B132B] flex-shrink-0';
 
       document.getElementById('viewerTitle').textContent = `${person.nama} — ${isSk ? 'Dokumen SK Keputusan' : 'Dokumen SPK Kontrak'}`;
-      document.getElementById('viewerSubtitle').textContent = rawUrl
+      document.getElementById('viewerSubtitle').textContent = (rawUrl && rawUrl.startsWith('http'))
         ? `Google Drive / Cloud • ${normalizePreviewUrl(rawUrl)}`
         : `Cadangan Lokal IndexedDB • ${viewerState.fileName}`;
 
@@ -2301,7 +2457,6 @@
       document.getElementById('viewerCtxUnit').textContent = person.penempatan;
       document.getElementById('viewerCtxHonor').textContent = formatRupiah(person.honor);
 
-      // Switcher if employee has both SK & Kontrak
       const switcher = document.getElementById('viewerDocSwitcher');
       if (hasSkDocument(person) && hasKontrakDocument(person)) {
         switcher.classList.remove('hidden');
@@ -2323,9 +2478,8 @@
       imgEl.classList.add('hidden');
       resetViewerZoom();
 
-      if (rawUrl) {
-        const previewUrl = normalizePreviewUrl(rawUrl);
-        iframeEl.src = previewUrl;
+      if (rawUrl && rawUrl.startsWith('http')) {
+        iframeEl.src = normalizePreviewUrl(rawUrl);
         iframeEl.classList.remove('hidden');
         document.getElementById('viewerOpenActionLabel').textContent = 'Buka di Tab Baru / Unduh';
       } else if (localBackup && localBackup.blob) {
@@ -2403,7 +2557,7 @@
     }
 
     // =========================================================================
-    // 11. UPLOAD DOKUMEN MODAL (MODE FILE DRIVE & MODE LINK DRIVE)
+    // 11. UPLOAD DOKUMEN SATUAN MODAL (MATCHES CODE.GS `uploadDocument`)
     // =========================================================================
     function openUploadDocModal(personNo, defaultJenis = 'SK') {
       const person = personnelList.find(p => p.no === personNo);
@@ -2435,12 +2589,12 @@
       document.getElementById('uploadDocNumberInput').value = defaultNo;
 
       const existingUrl = isSk ? person.skUrl : person.kontrakUrl;
-      document.getElementById('uploadDriveUrlInput').value = existingUrl || '';
+      document.getElementById('uploadDriveUrlInput').value = (existingUrl && existingUrl.startsWith('http')) ? existingUrl : '';
 
       const badge = document.getElementById('uploadCurrentDocBadge');
       const hasDoc = isSk ? hasSkDocument(person) : hasKontrakDocument(person);
       if (hasDoc) {
-        badge.textContent = existingUrl ? 'Sudah Ada Dokumen (Google Drive)' : 'Sudah Ada Dokumen (Cadangan Lokal)';
+        badge.textContent = (existingUrl && existingUrl.startsWith('http')) ? 'Sudah Ada Dokumen (Google Drive)' : 'Sudah Ada Dokumen (Tersimpan)';
         badge.className = 'font-bold text-emerald-500 dark:text-emerald-400';
       } else {
         badge.textContent = 'Belum Ada Dokumen';
@@ -2485,7 +2639,8 @@
       const person = personnelList.find(p => p.no === uploadModalState.personNo);
       if (!person) return;
 
-      const jenis = document.getElementById('uploadDocTypeSelect').value; // "SK" | "KONTRAK"
+      const jenis = document.getElementById('uploadDocTypeSelect').value; // 'SK' | 'KONTRAK'
+      const docTypeLower = jenis.toLowerCase(); // 'sk' | 'kontrak' (matches Code.gs)
       const nomorDokumen = document.getElementById('uploadDocNumberInput').value.trim();
       const submitBtn = document.getElementById('submitUploadBtn');
       const submitIcon = document.getElementById('submitUploadIcon');
@@ -2518,27 +2673,25 @@
             uploadedAt: getCurrentTimestampWIB()
           };
 
-          const base64 = await fileToBase64(fileObj);
+          const base64Data = await fileToBase64(fileObj);
           const payload = {
-            action: 'uploadDokumen',
-            no: person.no,
-            nama: person.nama,
-            jenis,
-            nomorDokumen,
+            action: 'uploadDocument',
+            personNo: person.no,
+            docType: docTypeLower,
+            docNumber: nomorDokumen,
+            sourceType: 'file',
             fileName: fileObj.name,
             mimeType: fileObj.type,
-            base64
+            base64Data
           };
 
           const resJson = await postToGoogleAppsScript(payload);
-          const returnedUrl = (resJson && (resJson.url || resJson.previewUrl || resJson.fileUrl)) || '';
 
-          if (jenis === 'SK') {
-            if (returnedUrl) person.skUrl = returnedUrl;
-            person.skNumber = nomorDokumen;
+          if (resJson && Array.isArray(resJson.data)) {
+            personnelList = resJson.data.map((row, idx) => normalizePersonRecord(row, idx));
           } else {
-            if (returnedUrl) person.kontrakUrl = returnedUrl;
-            person.kontrakNumber = nomorDokumen;
+            if (jenis === 'SK') person.skNumber = nomorDokumen;
+            else person.kontrakNumber = nomorDokumen;
           }
 
           newlyHighlightedNo = person.no;
@@ -2551,11 +2704,7 @@
             `${fileObj.name} untuk ${person.nama} berhasil diunggah & tercatat di Google Sheets.`,
             'success'
           );
-
-          // Re-sync from Sheets to confirm latest row state
-          syncFromGoogleSheets(true);
         } else {
-          // Mode (b): Simpan Link Google Drive / URL
           const rawUrl = document.getElementById('uploadDriveUrlInput').value.trim();
           if (!rawUrl) {
             showToast('URL Belum Diisi', 'Silakan tempel tautan Google Drive atau URL dokumen.', 'error');
@@ -2564,21 +2713,26 @@
 
           submitLabel.textContent = 'Menyimpan Link ke Sheets...';
           const payload = {
-            action: 'simpanLinkDokumen',
-            no: person.no,
-            jenis,
-            nomorDokumen,
+            action: 'uploadDocument',
+            personNo: person.no,
+            docType: docTypeLower,
+            docNumber: nomorDokumen,
+            sourceType: 'url',
             url: rawUrl
           };
 
-          await postToGoogleAppsScript(payload);
+          const resJson = await postToGoogleAppsScript(payload);
 
-          if (jenis === 'SK') {
-            person.skUrl = rawUrl;
-            person.skNumber = nomorDokumen;
+          if (resJson && Array.isArray(resJson.data)) {
+            personnelList = resJson.data.map((row, idx) => normalizePersonRecord(row, idx));
           } else {
-            person.kontrakUrl = rawUrl;
-            person.kontrakNumber = nomorDokumen;
+            if (jenis === 'SK') {
+              person.skUrl = rawUrl;
+              person.skNumber = nomorDokumen;
+            } else {
+              person.kontrakUrl = rawUrl;
+              person.kontrakNumber = nomorDokumen;
+            }
           }
 
           newlyHighlightedNo = person.no;
@@ -2591,12 +2745,9 @@
             `Link dokumen ${person.nama} berhasil disimpan ke Google Sheets.`,
             'success'
           );
-
-          syncFromGoogleSheets(true);
         }
       } catch (err) {
         console.error('Upload error:', err);
-        // If offline / network failure, keep IndexedDB backup active so UI reflects the upload
         if (uploadModalState.mode === 'link') {
           const rawUrl = document.getElementById('uploadDriveUrlInput').value.trim();
           if (rawUrl) {
@@ -2608,6 +2759,9 @@
               person.kontrakNumber = nomorDokumen;
             }
           }
+        } else {
+          if (jenis === 'SK') person.skNumber = nomorDokumen;
+          else person.kontrakNumber = nomorDokumen;
         }
         savePersonnelBackupToIndexedDB();
         closeUploadDocModal();
@@ -2633,7 +2787,7 @@
     }
 
     // =========================================================================
-    // 12. TAMBAH / EDIT PERSONIL MODAL (`savePersonil` -> `GAS_WEB_APP_URL`)
+    // 12. TAMBAH / EDIT PERSONIL MODAL
     // =========================================================================
     function openPersonilFormModal(personNo = null) {
       const titleEl = document.getElementById('personilModalTitle');
@@ -2701,23 +2855,11 @@
       closePersonilFormModal();
       refreshAllDashboard();
 
-      try {
-        await postToGoogleAppsScript({
-          action: 'savePersonil',
-          data: record
-        });
-        showToast(
-          isEdit ? 'Data Personil Diperbarui' : 'Personil Baru Ditambahkan',
-          `${record.nama} berhasil disinkronkan ke Google Sheets.`,
-          'success'
-        );
-      } catch (err) {
-        showToast(
-          'Tersimpan Secara Lokal (IndexedDB)',
-          `${record.nama} disimpan ke cache lokal (server Sheets tidak terjangkau).`,
-          'info'
-        );
-      }
+      showToast(
+        isEdit ? 'Data Personil Diperbarui' : 'Personil Baru Ditambahkan',
+        `${record.nama} berhasil disimpan.`,
+        'success'
+      );
     }
 
     // =========================================================================
@@ -2898,7 +3040,7 @@
     }
 
     // =========================================================================
-    // 14. EXCEL (.xlsx) IMPORT & EXPORT VIA SHEETJS
+    // 14. EXCEL (.xlsx) IMPORT & EXPORT VIA SHEETJS + SYNC TO GOOGLE SHEETS
     // =========================================================================
     function exportToExcel() {
       const rowsToExport = filteredPersonnel.length > 0 ? filteredPersonnel : personnelList;
@@ -2922,15 +3064,17 @@
           'PROFESI KEAHLIAN': p.profesi_keahlian,
           'PENDIDIKAN': p.pendidikan || '',
           'HONOR (Rp)': Number(p.honor) || 0,
-          'KETERANGAN DOKUMEN': ket,
-          'DOKUMEN SK': p.skUrl || '',
-          'DOKUMEN KONTRAK': p.kontrakUrl || ''
+          'STATUS DOKUMEN': ket,
+          'NOMOR SK': p.skNumber || '',
+          'FILE SK': p.skUrl || '',
+          'NOMOR KONTRAK': p.kontrakNumber || '',
+          'FILE KONTRAK': p.kontrakUrl || ''
         };
       });
 
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.json_to_sheet(excelData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Data Tim Teknis 2026');
+      XLSX.utils.book_append_sheet(wb, ws, 'Data_Tim_Teknis');
       XLSX.writeFile(wb, `Data_Tim_Teknis_UKE_I_2026_${new Date().toISOString().slice(0, 10)}.xlsx`);
 
       showToast('Export Excel Berhasil', `${excelData.length} baris data diekspor ke file .xlsx.`, 'success');
@@ -2950,7 +3094,7 @@
           .filter(item => item.nama.length > 0);
 
         if (parsed.length === 0) {
-          showToast('Format Excel Tidak Valid', 'Pastikan file memiliki kolom "NAMA", "PENEMPATAN", "UKE 1", dan "HONOR".', 'error');
+          showToast('Format Excel Tidak Valid', 'Pastikan file memiliki kolom "NAMA", "PENEMPATAN", "UKE I", dan "HONOR".', 'error');
           e.target.value = '';
           return;
         }
@@ -2958,7 +3102,25 @@
         personnelList = parsed;
         savePersonnelBackupToIndexedDB();
         resetTableFilters();
-        showToast('Import Excel Berhasil', `${parsed.length} data personil dimuat dari ${file.name}.`, 'success');
+
+        // Sync batch import to Code.gs `importBatch`
+        try {
+          await postToGoogleAppsScript({
+            action: 'importBatch',
+            rows: parsed.map(p => ({
+              nama: p.nama,
+              penempatan: p.penempatan,
+              uke_1: p.uke_1,
+              mitra: p.mitra_koordinasi,
+              profesi: p.profesi_keahlian,
+              pendidikan: p.pendidikan,
+              honor: p.honor
+            }))
+          });
+          showToast('Import Excel & Sinkronisasi Sheets Berhasil', `${parsed.length} data personil diimpor ke Google Sheets.`, 'success');
+        } catch (syncErr) {
+          showToast('Import Excel Berhasil (Lokal)', `${parsed.length} data dimuat ke aplikasi (sinkronisasi Sheets tertunda).`, 'info');
+        }
       } catch (err) {
         console.error(err);
         showToast('Gagal Membaca Excel', 'Terjadi kesalahan saat memproses file Excel.', 'error');
@@ -2989,7 +3151,6 @@
         label.textContent = 'Dark Mode';
         header.style.backgroundColor = 'rgba(17, 28, 58, 0.96)';
       }
-      renderCharts();
     }
 
     function openModal(id) {
@@ -3048,6 +3209,7 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeDocViewerModal();
+        closeBulkSkModal();
         closeUploadDocModal();
         closePersonilFormModal();
       }
